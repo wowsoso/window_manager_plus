@@ -28,7 +28,7 @@ this new implementation allows the creation and management of multiple windows.
     - [Listening events](#listening-events)
     - [Quit on close](#quit-on-close)
       - [macOS](#macos-1)
-    - [Windows](#windows-1)
+      - [Windows](#windows-1)
     - [Confirm before closing](#confirm-before-closing)
     - [Hidden at launch](#hidden-at-launch)
       - [Linux](#linux)
