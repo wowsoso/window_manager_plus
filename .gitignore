@@ -8,3 +8,4 @@ build/
 Generated*
 generated*
 doc/
+.fvm
