@@ -1073,12 +1073,6 @@ Emitted when the window leaves a docked state.
 
 Emitted when the window exits from a maximized state.
 
-[toString](https://api.flutter.dev/flutter/dart-core/Object/toString.html)() → [String](https://api.flutter.dev/flutter/dart-core/String-class.html)
-
-A string representation of this object.
-
-inherited
-
 <!-- README_DOC_GEN -->
 
 ## Contributors
