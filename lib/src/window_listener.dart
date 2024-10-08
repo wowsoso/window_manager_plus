@@ -1,3 +1,9 @@
+import 'package:window_manager_plus/src/window_manager.dart';
+
+/// The `WindowListener` mixin class is used to listen to window events.
+/// If this is used as a Global Listener using the [WindowManagerPlus.addGlobalListener] static method,
+/// the `windowId` parameter will be the ID of the window that emitted the event,
+/// otherwise, it will be always `null`.
 abstract mixin class WindowListener {
   /// Emitted when the window is going to be closed.
   void onWindowClose([int? windowId]) {}
@@ -25,7 +31,9 @@ abstract mixin class WindowListener {
 
   /// Emitted once when the window has finished being resized.
   ///
-  /// @platforms macos,windows
+  /// **Supported Platforms**:
+  /// - Windows
+  /// - macOS
   void onWindowResized([int? windowId]) {}
 
   /// Emitted when the window is being moved to a new position.
@@ -33,7 +41,9 @@ abstract mixin class WindowListener {
 
   /// Emitted once when the window is moved to a new position.
   ///
-  /// @platforms macos,windows
+  /// **Supported Platforms**:
+  /// - Windows
+  /// - macOS
   void onWindowMoved([int? windowId]) {}
 
   /// Emitted when the window enters a full-screen state.
@@ -44,17 +54,20 @@ abstract mixin class WindowListener {
 
   /// Emitted when the window entered a docked state.
   ///
-  /// @platforms windows
+  /// **Supported Platforms**:
+  /// - Windows
   void onWindowDocked([int? windowId]) {}
 
   /// Emitted when the window leaves a docked state.
   ///
-  /// @platforms windows
+  /// **Supported Platforms**:
+  /// - Windows
   void onWindowUndocked([int? windowId]) {}
 
   /// Emitted all events.
   void onWindowEvent(String eventName, [int? windowId]) {}
 
+  /// Event from other windows.
   Future<dynamic> onEventFromWindow(String eventName, int fromWindowId, dynamic arguments) async {
     throw UnimplementedError();
   }

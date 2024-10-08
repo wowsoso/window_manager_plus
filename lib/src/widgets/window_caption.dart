@@ -42,13 +42,13 @@ class WindowCaption extends StatefulWidget {
 class _WindowCaptionState extends State<WindowCaption> with WindowListener {
   @override
   void initState() {
-    WindowManager.current.addListener(this);
+    WindowManagerPlus.current.addListener(this);
     super.initState();
   }
 
   @override
   void dispose() {
-    WindowManager.current.removeListener(this);
+    WindowManagerPlus.current.removeListener(this);
     super.dispose();
   }
 
@@ -89,29 +89,29 @@ class _WindowCaptionState extends State<WindowCaption> with WindowListener {
           WindowCaptionButton.minimize(
             brightness: widget.brightness,
             onPressed: () async {
-              bool isMinimized = await WindowManager.current.isMinimized();
+              bool isMinimized = await WindowManagerPlus.current.isMinimized();
               if (isMinimized) {
-                WindowManager.current.restore();
+                WindowManagerPlus.current.restore();
               } else {
-                WindowManager.current.minimize();
+                WindowManagerPlus.current.minimize();
               }
             },
           ),
           FutureBuilder<bool>(
-            future: WindowManager.current.isMaximized(),
+            future: WindowManagerPlus.current.isMaximized(),
             builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
               if (snapshot.data == true) {
                 return WindowCaptionButton.unmaximize(
                   brightness: widget.brightness,
                   onPressed: () {
-                    WindowManager.current.unmaximize();
+                    WindowManagerPlus.current.unmaximize();
                   },
                 );
               }
               return WindowCaptionButton.maximize(
                 brightness: widget.brightness,
                 onPressed: () {
-                  WindowManager.current.maximize();
+                  WindowManagerPlus.current.maximize();
                 },
               );
             },
@@ -119,7 +119,7 @@ class _WindowCaptionState extends State<WindowCaption> with WindowListener {
           WindowCaptionButton.close(
             brightness: widget.brightness,
             onPressed: () {
-              WindowManager.current.close();
+              WindowManagerPlus.current.close();
             },
           ),
         ],

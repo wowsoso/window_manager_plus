@@ -14,7 +14,7 @@ This is a fork and a re-work of the original [window_manager](https://pub.dev/pa
 With inspiration from the [desktop_multi_window](https://pub.dev/packages/desktop_multi_window) plugin,
 this new implementation allows the creation and management of multiple windows.
 
-Linux is not currently supported.
+**Linux is not currently supported.**
 
 ---
 
@@ -149,7 +149,7 @@ import 'package:window_manager_plus/window_manager_plus.dart';
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   // Must add this line.
-  await WindowManager.ensureInitialized(args.isEmpty ? 0 : int.parse(args[0]));
+  await WindowManagerPlus.ensureInitialized(args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0);
 
   WindowOptions windowOptions = WindowOptions(
     size: Size(800, 600),
@@ -158,9 +158,9 @@ void main(List<String> args) async {
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
   );
-  WindowManager.current.waitUntilReadyToShow(windowOptions, () async {
-    await WindowManager.current.show();
-    await WindowManager.current.focus();
+  WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
+    await WindowManagerPlus.current.show();
+    await WindowManagerPlus.current.focus();
   });
 
   runApp(MyApp());
@@ -171,6 +171,11 @@ void main(List<String> args) async {
 > Please see the example app of this plugin for a full example.
 
 #### Listening events
+
+The `WindowListener` mixin class is used to listen to window events.
+If this is used as a Global Listener using the `WindowManagerPlus.addGlobalListener` static method,
+the `windowId` parameter will be the ID of the window that emitted the event,
+otherwise, it will be always `null`.
 
 ```dart
 import 'package:flutter/cupertino.dart';
@@ -185,12 +190,12 @@ class _HomePageState extends State<HomePage> with WindowListener {
   @override
   void initState() {
     super.initState();
-    WindowManager.current.addListener(this);
+    WindowManagerPlus.current.addListener(this);
   }
 
   @override
   void dispose() {
-    WindowManager.current.removeListener(this);
+    WindowManagerPlus.current.removeListener(this);
     super.dispose();
   }
 
@@ -297,19 +302,19 @@ class _HomePageState extends State<HomePage> with WindowListener {
   @override
   void initState() {
     super.initState();
-    windowManager.addListener(this);
+    WindowManagerPlus.current.addListener(this);
     _init();
   }
 
   @override
   void dispose() {
-    windowManager.removeListener(this);
+    WindowManagerPlus.current.removeListener(this);
     super.dispose();
   }
 
   void _init() async {
     // Add this line to override the default close handler
-    await windowManager.setPreventClose(true);
+    await WindowManagerPlus.current.setPreventClose(true);
     setState(() {});
   }
 
@@ -320,7 +325,7 @@ class _HomePageState extends State<HomePage> with WindowListener {
 
   @override
   void onWindowClose() async {
-    bool _isPreventClose = await windowManager.isPreventClose();
+    bool _isPreventClose = await WindowManagerPlus.current.isPreventClose();
     if (_isPreventClose) {
       showDialog(
         context: context,
@@ -338,7 +343,7 @@ class _HomePageState extends State<HomePage> with WindowListener {
                 child: Text('Yes'),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  await windowManager.destroy();
+                  await WindowManagerPlus.current.destroy();
                 },
               ),
             ],
@@ -459,12 +464,12 @@ class _HomePageState extends State<HomePage> with WindowListener {
   @override
   void initState() {
     super.initState();
-    windowManager.addListener(this);
+    WindowManagerPlus.current.addListener(this);
   }
 
   @override
   void dispose() {
-    windowManager.removeListener(this);
+    WindowManagerPlus.current.removeListener(this);
     super.dispose();
   }
 
@@ -487,19 +492,6 @@ class _HomePageState extends State<HomePage> with WindowListener {
 
 - [Click the dock icon to restore after closing the window](https://leanflutter.dev/tips-and-tricks/002-click-dock-icon-to-restore-after-closing-the-window/)
 - [Making the app single-instanced](https://leanflutter.dev/tips-and-tricks/001-making-the-app-single-instanced/)
-
-## Who's using it?
-
-- [Airclap](https://airclap.app/) - Send any file to any device. cross platform, ultra fast and easy to use.
-- [AuthPass](https://authpass.app/) - Password Manager based on Flutter for all platforms. Keepass 2.x (kdbx 3.x) compatible.
-- [Biyi (比译)](https://biyidev.com/) - A convenient translation and dictionary app written in dart / Flutter.
-- [BlueBubbles](https://github.com/BlueBubblesApp/bluebubbles-app) - BlueBubbles is an ecosystem of apps bringing iMessage to Android, Windows, and Linux
-- [LunaSea](https://github.com/CometTools/LunaSea) - A self-hosted controller for mobile and macOS built using the Flutter framework.
-- [Linwood Butterfly](https://github.com/LinwoodCloud/Butterfly) - Open source note taking app written in Flutter
-- [RustDesk](https://github.com/rustdesk/rustdesk) - Yet another remote desktop software, written in Rust. Works out of the box, no configuration required. 
-- [Ubuntu Desktop Installer](https://github.com/canonical/ubuntu-desktop-installer) - This project is a modern implementation of the Ubuntu Desktop installer.
-- [UniControlHub](https://github.com/rohitsangwan01/uni_control_hub) - Seamlessly bridge your Desktop and Mobile devices
-- [EyesCare](bixat.dev/products/EyesCare) - A light-weight application following 20 rule adherence for optimum eye health
 
 ## API
 

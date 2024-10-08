@@ -1,11 +1,11 @@
 import Cocoa
 import FlutterMacOS
 
-public class WindowManagerPlugin: NSObject, FlutterPlugin {
+public class WindowManagerPlusPlugin: NSObject, FlutterPlugin {
     public static var RegisterGeneratedPlugins:((FlutterPluginRegistry) -> Void)?
     
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let _ = WindowManagerPlugin(registrar)
+        let _ = WindowManagerPlusPlugin(registrar)
     }
     
     private var registrar: FlutterPluginRegistrar!;
@@ -17,16 +17,16 @@ public class WindowManagerPlugin: NSObject, FlutterPlugin {
     }
     
     private var _inited: Bool = false
-    private var windowManager: WindowManager = WindowManager()
+    private var windowManager: WindowManagerPlus = WindowManagerPlus()
     
     public init(_ registrar: FlutterPluginRegistrar) {
         super.init()
         self.registrar = registrar
         
-        windowManager.staticChannel = FlutterMethodChannel(name: "window_manager_static", binaryMessenger: registrar.messenger)
+        windowManager.staticChannel = FlutterMethodChannel(name: "window_manager_plus_static", binaryMessenger: registrar.messenger)
         windowManager.staticChannel?.setMethodCallHandler(staticHandle)
         
-        windowManager.channel = FlutterMethodChannel(name: "window_manager", binaryMessenger: registrar.messenger)
+        windowManager.channel = FlutterMethodChannel(name: "window_manager_plus", binaryMessenger: registrar.messenger)
         windowManager.channel?.setMethodCallHandler(handle)
     }
     
@@ -36,10 +36,10 @@ public class WindowManagerPlugin: NSObject, FlutterPlugin {
             windowManager.mainWindow = mainWindow
             
             windowManager.channel?.setMethodCallHandler(nil)
-            windowManager.channel = FlutterMethodChannel(name: "window_manager_\(windowManager.id)", binaryMessenger: registrar.messenger)
+            windowManager.channel = FlutterMethodChannel(name: "window_manager_plus_\(windowManager.id)", binaryMessenger: registrar.messenger)
             windowManager.channel?.setMethodCallHandler(handle)
             
-            WindowManager.windowManagers[windowId] = windowManager
+            WindowManagerPlus.windowManagers[windowId] = windowManager
             _inited = true
         }
     }
@@ -51,12 +51,12 @@ public class WindowManagerPlugin: NSObject, FlutterPlugin {
         switch (methodName) {
         case "createWindow":
             let encodedArgs = args["args"] as? [String] ?? []
-            let windowId = WindowManager.createWindow(args: encodedArgs)
+            let windowId = WindowManagerPlus.createWindow(args: encodedArgs)
             result(windowId >= 0 ? windowId : nil)
             break
         case "getAllWindowManagerIds":
-            let keys = Array<Int64>(WindowManager.windowManagers.keys.filter { key in
-                return WindowManager.windowManagers[key] != nil
+            let keys = Array<Int64>(WindowManagerPlus.windowManagers.keys.filter { key in
+                return WindowManagerPlus.windowManagers[key] != nil
             })
             result(keys)
             break
@@ -71,7 +71,7 @@ public class WindowManagerPlugin: NSObject, FlutterPlugin {
         let windowId = args["windowId"] as? Int64 ?? -1;
         
         var wManager = windowManager
-        if windowId >= 0, let wm = WindowManager.windowManagers[windowId], let wm2 = wm {
+        if windowId >= 0, let wm = WindowManagerPlus.windowManagers[windowId], let wm2 = wm {
             wManager = wm2
         }
         
@@ -86,7 +86,7 @@ public class WindowManagerPlugin: NSObject, FlutterPlugin {
             }
             break
         case "invokeMethodToWindow":
-            if let targetWindowId = args["targetWindowId"] as? Int64, let wm = WindowManager.windowManagers[targetWindowId], let wm2 = wm {
+            if let targetWindowId = args["targetWindowId"] as? Int64, let wm = WindowManagerPlus.windowManagers[targetWindowId], let wm2 = wm {
                 wm2.channel?.invokeMethod("onEvent", arguments: args["args"]) {(value) -> Void in
                     if value is FlutterError {
                         result(value)
@@ -323,6 +323,6 @@ public class WindowManagerPlugin: NSObject, FlutterPlugin {
     }
     
     deinit {
-        debugPrint("WindowManagerPlugin dealloc")
+        debugPrint("WindowManagerPluginPlus dealloc")
     }
 }

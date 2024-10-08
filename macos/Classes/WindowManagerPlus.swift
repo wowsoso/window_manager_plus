@@ -63,10 +63,10 @@ class FlutterWindowInner: NSPanel {
     }
 }
 
-public class WindowManager: NSObject, NSWindowDelegate {
+public class WindowManagerPlus: NSObject, NSWindowDelegate {
     private static var autoincrementId: Int64 = 0;
     private static var windows: [Int64:FlutterWindowInner?] = [:];
-    public static var windowManagers: [Int64:WindowManager?] = [:];
+    public static var windowManagers: [Int64:WindowManagerPlus?] = [:];
     
     public var staticChannel: FlutterMethodChannel?
     public var channel: FlutterMethodChannel?
@@ -74,7 +74,7 @@ public class WindowManager: NSObject, NSWindowDelegate {
     public var id: Int64 = -1;
     
     public static func createWindow(args: [String]) -> Int64 {
-        if let RegisterGeneratedPlugins = WindowManagerPlugin.RegisterGeneratedPlugins {
+        if let RegisterGeneratedPlugins = WindowManagerPlusPlugin.RegisterGeneratedPlugins {
             autoincrementId += 1
             let windowId = autoincrementId
             
@@ -93,7 +93,7 @@ public class WindowManager: NSObject, NSWindowDelegate {
             
             RegisterGeneratedPlugins(flutterViewController)
             
-            WindowManager.windows[windowId] = window
+            WindowManagerPlus.windows[windowId] = window
             
             window.makeKeyAndOrderFront(nil)
             
@@ -574,14 +574,14 @@ public class WindowManager: NSObject, NSWindowDelegate {
     }
     
     public func windowWillClose(_ notification: Notification) {
-        WindowManager.windowManagers[id]??.staticChannel?.setMethodCallHandler(nil)
-        WindowManager.windowManagers[id]??.staticChannel = nil
-        WindowManager.windowManagers[id]??.channel?.setMethodCallHandler(nil)
-        WindowManager.windowManagers[id]??.channel = nil
-        WindowManager.windowManagers[id]??._mainWindow?.delegate = nil
-        WindowManager.windowManagers[id]??._mainWindow = nil
-        WindowManager.windowManagers[id] = nil
-        WindowManager.windows[id] = nil
+        WindowManagerPlus.windowManagers[id]??.staticChannel?.setMethodCallHandler(nil)
+        WindowManagerPlus.windowManagers[id]??.staticChannel = nil
+        WindowManagerPlus.windowManagers[id]??.channel?.setMethodCallHandler(nil)
+        WindowManagerPlus.windowManagers[id]??.channel = nil
+        WindowManagerPlus.windowManagers[id]??._mainWindow?.delegate = nil
+        WindowManagerPlus.windowManagers[id]??._mainWindow = nil
+        WindowManagerPlus.windowManagers[id] = nil
+        WindowManagerPlus.windows[id] = nil
     }
     
     public func windowShouldZoom(_ window: NSWindow, toFrame newFrame: NSRect) -> Bool {
@@ -667,8 +667,8 @@ public class WindowManager: NSObject, NSWindowDelegate {
             "windowId": id
         ]
         
-        let wManagers = WindowManager.windowManagers;
-        wManagers.forEach { (key: Int64, value: WindowManager?) in
+        let wManagers = WindowManagerPlus.windowManagers;
+        wManagers.forEach { (key: Int64, value: WindowManagerPlus?) in
             if let wm = value {
                 wm.channel?.invokeMethod("onEvent", arguments: args)
             }
@@ -676,6 +676,6 @@ public class WindowManager: NSObject, NSWindowDelegate {
     }
     
     deinit {
-        debugPrint("WindowManager dealloc")
+        debugPrint("WindowManagerPlus dealloc")
     }
 }

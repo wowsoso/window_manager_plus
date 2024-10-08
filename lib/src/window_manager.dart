@@ -33,25 +33,27 @@ const kWindowEventUndocked = 'undocked';
 
 enum DockSide { left, right }
 
-// WindowManager
-class WindowManager {
+/// WindowManagerPlus
+class WindowManagerPlus {
 
-  WindowManager._(int id) : _id = id, _channel = MethodChannel('window_manager_$id') {
+  WindowManagerPlus._(int id) : _id = id, _channel = MethodChannel('window_manager_plus_$id') {
     _channel.setMethodCallHandler(_methodCallHandler);
   }
 
-  WindowManager._fromCreateWindow(int id) : _id = id, _channel = _current!._channel {}
+  WindowManagerPlus._fromWindowId(int id) : _id = id, _channel = _current!._channel {}
 
   final MethodChannel _channel;
-  static const MethodChannel _staticChannel = MethodChannel('window_manager_static');
+  static const MethodChannel _staticChannel = MethodChannel('window_manager_plus_static');
 
   int _id;
 
   int get id => _id;
 
-  static WindowManager? _current;
-  /// The current instance of [WindowManager].
-  static WindowManager get current => _current!;
+  static WindowManagerPlus? _current;
+
+  /// The current instance of [WindowManagerPlus].
+  /// [ensureInitialized] must be called before accessing this.
+  static WindowManagerPlus get current => _current!;
 
   final ObserverList<WindowListener> _listeners =
       ObserverList<WindowListener>();
@@ -183,49 +185,59 @@ class WindowManager {
     }
   }
 
+  /// Get the window listeners.
   List<WindowListener> get listeners {
     final List<WindowListener> localListeners =
         List<WindowListener>.from(_listeners);
     return localListeners;
   }
 
+  /// Whether the window has listeners.
   bool get hasListeners {
     return _listeners.isNotEmpty;
   }
 
+  /// Add a listener to the window.
   void addListener(WindowListener listener) {
     _listeners.add(listener);
   }
 
+  /// Remove a listener from the window.
   void removeListener(WindowListener listener) {
     _listeners.remove(listener);
   }
 
+  /// Get the global window listeners.
   static List<WindowListener> get globalListeners {
     final List<WindowListener> localListeners =
     List<WindowListener>.from(_globalListeners);
     return localListeners;
   }
 
+  /// Whether the window has global listeners.
   static bool get hasGlobalListeners {
     return _globalListeners.isNotEmpty;
   }
 
+  /// Add a global listener to the window.
   static void addGlobalListener(WindowListener listener) {
     _globalListeners.add(listener);
   }
 
+  /// Remove a global listener from the window.
   static void removeGlobalListener(WindowListener listener) {
     _globalListeners.remove(listener);
   }
 
+  /// Get the device pixel ratio.
   double getDevicePixelRatio() {
     // Subsequent version, remove this deprecated member.
     // ignore: deprecated_member_use
     return window.devicePixelRatio;
   }
 
-  static Future<WindowManager?> createWindow([List<String>? args]) async {
+  /// Create a new window.
+  static Future<WindowManagerPlus?> createWindow([List<String>? args]) async {
     final Map<String, dynamic> arguments = {
       'args': args,
     };
@@ -235,17 +247,21 @@ class WindowManager {
     }
     _completers[windowId] = Completer();
     await _completers[windowId]?.future;
-    return WindowManager._fromCreateWindow(windowId);
+    return WindowManagerPlus._fromWindowId(windowId);
   }
 
+  /// Get all window manager ids.
   static Future<List<int>> getAllWindowManagerIds() async {
     return (await _staticChannel.invokeMethod<List<dynamic>>('getAllWindowManagerIds'))?.cast<int>() ?? [];
   }
 
-  static WindowManager fromWindowId(int windowId) {
-    return WindowManager._fromCreateWindow(windowId);
+  /// Get the window manager from the window id.
+  static WindowManagerPlus fromWindowId(int windowId) {
+    return WindowManagerPlus._fromWindowId(windowId);
   }
 
+  /// Ensure the window manager for this [windowId] is initialized.
+  /// Must be called before accessing the [WindowManagerPlus.current].
   static Future<void> ensureInitialized(int windowId) async {
     if (_current != null) {
       return;
@@ -253,9 +269,10 @@ class WindowManager {
     final Map<String, dynamic> arguments = {
       'windowId': windowId,
     };
-    final MethodChannel _channel = const MethodChannel('window_manager');
+    // temp method channel to ensure initialized
+    final MethodChannel _channel = const MethodChannel('window_manager_plus');
     await _channel.invokeMethod('ensureInitialized', arguments);
-    _current = WindowManager._(windowId);
+    _current = WindowManagerPlus._(windowId);
   }
 
   Future<T?> _invokeMethod<T>(String method, [Map<String, dynamic>? arguments]) {
@@ -347,14 +364,18 @@ class WindowManager {
 
   /// Removes focus from the window.
   ///
-  /// @platforms macos,windows
+  /// **Supported Platforms**:
+  /// - Windows
+  /// - macOS
   Future<void> blur() async {
     await _invokeMethod('blur');
   }
 
   /// Returns `bool` - Whether window is focused.
   ///
-  /// @platforms macos,windows
+  /// **Supported Platforms**:
+  /// - Windows
+  /// - macOS
   Future<bool> isFocused() async {
     return await _invokeMethod('isFocused');
   }
@@ -436,14 +457,16 @@ class WindowManager {
 
   /// Returns `bool` - Whether the window is dockable or not.
   ///
-  /// @platforms windows
+  /// **Supported Platforms**:
+  /// - Windows
   Future<bool> isDockable() async {
     return await _invokeMethod('isDockable');
   }
 
   /// Returns `bool` - Whether the window is docked.
   ///
-  /// @platforms windows
+  /// **Supported Platforms**:
+  /// - Windows
   Future<DockSide?> isDocked() async {
     int? docked = await _invokeMethod('isDocked');
     if (docked == 0) return null;
@@ -454,7 +477,8 @@ class WindowManager {
 
   /// Docks the window. only works on Windows
   ///
-  /// @platforms windows
+  /// **Supported Platforms**:
+  /// - Windows
   Future<void> dock({required DockSide side, required int width}) async {
     final Map<String, dynamic> arguments = {
       'left': side == DockSide.left,
@@ -466,7 +490,8 @@ class WindowManager {
 
   /// Undocks the window. only works on Windows
   ///
-  /// @platforms windows
+  /// **Supported Platforms**:
+  /// - Windows
   Future<bool> undock() async {
     return await _invokeMethod('undock');
   }
@@ -610,14 +635,16 @@ class WindowManager {
 
   /// Returns `bool` - Whether the window can be moved by user.
   ///
-  /// @platforms macos
+  /// **Supported Platforms**:
+  /// - macOS
   Future<bool> isMovable() async {
     return await _invokeMethod('isMovable');
   }
 
   /// Sets whether the window can be moved by user.
   ///
-  /// @platforms macos
+  /// **Supported Platforms**:
+  /// - macOS
   Future<void> setMovable(bool isMovable) async {
     final Map<String, dynamic> arguments = {
       'isMovable': isMovable,
@@ -627,14 +654,18 @@ class WindowManager {
 
   /// Returns `bool` - Whether the window can be manually minimized by the user.
   ///
-  /// @platforms macos,windows
+  /// **Supported Platforms**:
+  /// - Windows
+  /// - macOS
   Future<bool> isMinimizable() async {
     return await _invokeMethod('isMinimizable');
   }
 
   /// Sets whether the window can be manually minimized by user.
   ///
-  /// @platforms macos,windows
+  /// **Supported Platforms**:
+  /// - Windows
+  /// - macOS
   Future<void> setMinimizable(bool isMinimizable) async {
     final Map<String, dynamic> arguments = {
       'isMinimizable': isMinimizable,
@@ -644,14 +675,17 @@ class WindowManager {
 
   /// Returns `bool` - Whether the window can be manually closed by user.
   ///
-  /// @platforms windows
+  /// **Supported Platforms**:
+  /// - Windows
   Future<bool> isClosable() async {
     return await _invokeMethod('isClosable');
   }
 
   /// Returns `bool` - Whether the window can be manually maximized by the user.
   ///
-  /// @platforms macos,windows
+  /// **Supported Platforms**:
+  /// - Windows
+  /// - macOS
   Future<bool> isMaximizable() async {
     return await _invokeMethod('isMaximizable');
   }
@@ -666,7 +700,9 @@ class WindowManager {
 
   /// Sets whether the window can be manually closed by user.
   ///
-  /// @platforms macos,windows
+  /// **Supported Platforms**:
+  /// - Windows
+  /// - macOS
   Future<void> setClosable(bool isClosable) async {
     final Map<String, dynamic> arguments = {
       'isClosable': isClosable,
@@ -694,7 +730,8 @@ class WindowManager {
 
   /// Sets whether the window should show always below other windows.
   ///
-  /// @platforms linux,windows
+  /// **Supported Platforms**:
+  /// - Windows
   Future<void> setAlwaysOnBottom(bool isAlwaysOnBottom) async {
     final Map<String, dynamic> arguments = {
       'isAlwaysOnBottom': isAlwaysOnBottom,
@@ -747,7 +784,9 @@ class WindowManager {
 
   /// Sets progress value in progress bar. Valid range is [0, 1.0].
   ///
-  /// @platforms macos,windows
+  /// **Supported Platforms**:
+  /// - Windows
+  /// - macOS
   Future<void> setProgressBar(double progress) async {
     final Map<String, dynamic> arguments = {
       'progress': progress,
@@ -757,7 +796,8 @@ class WindowManager {
 
   /// Sets window/taskbar icon.
   ///
-  /// @platforms windows
+  /// **Supported Platforms**:
+  /// - Windows
   Future<void> setIcon(String iconPath) async {
     final Map<String, dynamic> arguments = {
       'iconPath': path.joinAll([
@@ -772,7 +812,8 @@ class WindowManager {
 
   /// Returns `bool` - Whether the window is visible on all workspaces.
   ///
-  /// @platforms macos
+  /// **Supported Platforms**:
+  /// - macOS
   Future<bool> isVisibleOnAllWorkspaces() async {
     return await _invokeMethod('isVisibleOnAllWorkspaces');
   }
@@ -789,7 +830,8 @@ class WindowManager {
   /// }
   /// ```
   ///
-  /// @platforms macos
+  /// **Supported Platforms**:
+  /// - macOS
   Future<void> setVisibleOnAllWorkspaces(
     bool visible, {
     bool? visibleOnFullScreen,
@@ -806,7 +848,8 @@ class WindowManager {
   /// Note that it's required to request access at your AppDelegate.swift like this:
   /// UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge])
   ///
-  /// @platforms macos
+  /// **Supported Platforms**:
+  /// - macOS
   Future<void> setBadgeLabel([String? label]) async {
     final Map<String, dynamic> arguments = {
       'label': label ?? '',
@@ -816,14 +859,18 @@ class WindowManager {
 
   /// Returns `bool` - Whether the window has a shadow. On Windows, always returns true unless window is frameless.
   ///
-  /// @platforms macos,windows
+  /// **Supported Platforms**:
+  /// - Windows
+  /// - macOS
   Future<bool> hasShadow() async {
     return await _invokeMethod('hasShadow');
   }
 
   /// Sets whether the window should have a shadow. On Windows, doesn't do anything unless window is frameless.
   ///
-  /// @platforms macos,windows
+  /// **Supported Platforms**:
+  /// - Windows
+  /// - macOS
   Future<void> setHasShadow(bool hasShadow) async {
     final Map<String, dynamic> arguments = {
       'hasShadow': hasShadow,
@@ -878,7 +925,8 @@ class WindowManager {
   /// Starts a window resize based on the specified mouse-down & mouse-move event.
   /// On Windows, this is disabled during full screen mode.
   ///
-  /// @platforms linux,windows
+  /// **Supported Platforms**:
+  /// - Windows
   Future<void> startResizing(ResizeEdge resizeEdge) async {
     if (Platform.isWindows && await isFullScreen()) return;
     await _invokeMethod<bool>(
@@ -901,18 +949,21 @@ class WindowManager {
     );
   }
 
-  /// Grabs the keyboard.
-  /// @platforms linux
-  Future<bool> grabKeyboard() async {
-    return await _invokeMethod('grabKeyboard');
-  }
+  // /// Grabs the keyboard.
+  // /// @platforms linux
+  // Future<bool> grabKeyboard() async {
+  //   return await _invokeMethod('grabKeyboard');
+  // }
+  //
+  // /// Ungrabs the keyboard.
+  // /// @platforms linux
+  // Future<bool> ungrabKeyboard() async {
+  //   return await _invokeMethod('ungrabKeyboard');
+  // }
 
-  /// Ungrabs the keyboard.
-  /// @platforms linux
-  Future<bool> ungrabKeyboard() async {
-    return await _invokeMethod('ungrabKeyboard');
-  }
-
+  /// Invokes a method on the window with id [targetWindowId].
+  /// It could return a Future that resolves to the return value of the invoked method, otherwise `null`.
+  /// Use [WindowListener.onEventFromWindow] to listen for the event.
   Future<dynamic> invokeMethodToWindow(int targetWindowId, String method, [dynamic args]) async {
     final Map<String, dynamic> arguments = {
       'targetWindowId': targetWindowId,
@@ -928,7 +979,7 @@ class WindowManager {
 
   @override
   String toString() {
-    return 'WindowManager{id: $_id}';
+    return 'WindowManagerPlus{id: $_id}';
   }
 }
 

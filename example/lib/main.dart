@@ -1,7 +1,7 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:window_manager_plus/window_manager.dart';
+import 'package:window_manager_plus/window_manager_plus.dart';
 import 'package:window_manager_plus_example/pages/home.dart';
 import 'package:window_manager_plus_example/utils/config.dart';
 
@@ -11,7 +11,7 @@ void main(List<String> args) async {
   }
 
   WidgetsFlutterBinding.ensureInitialized();
-  await WindowManager.ensureInitialized(args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0);
+  await WindowManagerPlus.ensureInitialized(args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0);
 
   WindowOptions windowOptions = const WindowOptions(
     size: Size(800, 600),
@@ -21,12 +21,12 @@ void main(List<String> args) async {
     titleBarStyle: TitleBarStyle.hidden,
     windowButtonVisibility: false,
   );
-  WindowManager.current.waitUntilReadyToShow(windowOptions, () async {
-    await WindowManager.current.show();
-    await WindowManager.current.focus();
+  WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
+    await WindowManagerPlus.current.show();
+    await WindowManagerPlus.current.focus();
 
-    if (WindowManager.current.id != 0) {
-      WindowManager.current.invokeMethodToWindow(0, 'testMethod').then((value) {
+    if (WindowManagerPlus.current.id != 0) {
+      WindowManagerPlus.current.invokeMethodToWindow(0, 'testMethod').then((value) {
         BotToast.showText(text: 'Response from 0: $value');
       },);
     }
