@@ -3,15 +3,15 @@
 # Run `pod lib lint window_manager.podspec` to validate before publishing.
 #
 Pod::Spec.new do |s|
-  s.name             = 'window_manager'
-  s.version          = '0.2.0'
+  s.name             = 'window_manager_plus'
+  s.version          = '0.0.1'
   s.summary          = 'A new flutter plugin project.'
   s.description      = <<-DESC
 A new flutter plugin project.
                        DESC
-  s.homepage         = 'https://leanflutter.org'
+  s.homepage         = 'http://example.com'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'LiJianying' => 'lijy91@foxmail.com' }
+  s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
   s.dependency 'FlutterMacOS'

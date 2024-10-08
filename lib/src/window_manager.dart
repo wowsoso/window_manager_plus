@@ -6,11 +6,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
-import 'package:window_manager/src/resize_edge.dart';
-import 'package:window_manager/src/title_bar_style.dart';
-import 'package:window_manager/src/utils/calc_window_position.dart';
-import 'package:window_manager/src/window_listener.dart';
-import 'package:window_manager/src/window_options.dart';
+import 'package:window_manager_plus/src/resize_edge.dart';
+import 'package:window_manager_plus/src/title_bar_style.dart';
+import 'package:window_manager_plus/src/utils/calc_window_position.dart';
+import 'package:window_manager_plus/src/window_listener.dart';
+import 'package:window_manager_plus/src/window_options.dart';
 
 const kWindowEventInitialized = 'initialized';
 const kWindowEventClose = 'close';
@@ -239,7 +239,7 @@ class WindowManager {
   }
 
   static Future<List<int>> getAllWindowManagerIds() async {
-    return await _staticChannel.invokeMethod('getAllWindowManagerIds');
+    return (await _staticChannel.invokeMethod<List<dynamic>>('getAllWindowManagerIds'))?.cast<int>() ?? [];
   }
 
   static WindowManager fromWindowId(int windowId) {

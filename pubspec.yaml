@@ -1,10 +1,10 @@
-name: window_manager
-description: This plugin allows Flutter desktop apps to resizing and repositioning the window.
-version: 0.4.2
-homepage: https://github.com/leanflutter/window_manager
+name: window_manager_plus
+description: This plugin allows Flutter desktop apps to create and manage multiple windows, such as resizing and repositioning, and communicate between them
+version: 1.0.0
+homepage: https://github.com/pichillilorenzo/window_manager_plus
 
 platforms:
-  linux:
+  #linux:
   macos:
   windows:
 
@@ -12,8 +12,8 @@ topics:
   - window
   - window-resize
   - window-manager
+  - multi-window
   - desktop
-  - desktop-window
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -22,11 +22,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  path: ^1.8.2
-  screen_retriever: ^0.1.9
+  path: any
+  screen_retriever: ^0.2.0
 
 dev_dependencies:
-  dependency_validator: ^3.0.0
+  dependency_validator: ^4.1.1
   flutter_test:
     sdk: flutter
   mostly_reasonable_lints: ^0.1.2
@@ -34,8 +34,8 @@ dev_dependencies:
 flutter:
   plugin:
     platforms:
-      linux:
-        pluginClass: WindowManagerPlugin
+      #linux:
+      #  pluginClass: WindowManagerPlugin
       macos:
         pluginClass: WindowManagerPlugin
       windows:

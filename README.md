@@ -1,21 +1,20 @@
-# window_manager
+# window_manager_plus
 
-[![pub version][pub-image]][pub-url] [![][discord-image]][discord-url] ![][visits-count-image] [![All Contributors][all-contributors-image]](#contributors)
+[![pub version][pub-image]][pub-url] [![All Contributors][all-contributors-image]](#contributors)
 
-[pub-image]: https://img.shields.io/pub/v/window_manager.svg
-[pub-url]: https://pub.dev/packages/window_manager
+[![GitHub stars](https://img.shields.io/github/stars/pichillilorenzo/window_manager_plus?style=social)]
 
-[discord-image]: https://img.shields.io/discord/884679008049037342.svg
-[discord-url]: https://discord.gg/zPa6EZ2jqb
+[pub-image]: https://img.shields.io/pub/v/window_manager_plus.svg
+[pub-url]: https://pub.dev/packages/window_manager_plus
+[all-contributors-image]: https://img.shields.io/github/all-contributors/pichillilorenzo/window_manager_plus?color=ee8449&style=flat-square
 
-[visits-count-image]: https://img.shields.io/badge/dynamic/json?label=Visits%20Count&query=value&url=https://api.countapi.xyz/hit/leanflutter.window_manager/visits
-[all-contributors-image]: https://img.shields.io/github/all-contributors/leanflutter/window_manager?color=ee8449&style=flat-square
+This plugin allows Flutter desktop apps to create and manage multiple windows, such as resizing and repositioning, and communicate between them.
 
-This plugin allows Flutter desktop apps to resizing and repositioning the window.
+This is a fork and a re-work of the original [window_manager](https://pub.dev/packages/window_manager) plugin.
+With inspiration from the [desktop_multi_window](https://pub.dev/packages/desktop_multi_window) plugin,
+this new implementation allows the creation and management of multiple windows.
 
----
-
-English | [简体中文](./README-ZH.md)
+Linux is not currently supported.
 
 ---
 
@@ -135,40 +134,22 @@ English | [简体中文](./README-ZH.md)
 ## Platform Support
 
 | Linux | macOS | Windows |
-| :---: | :---: | :-----: |
-|   ✔️   |   ✔️   |    ✔️    |
+|:-----:|:-----:|:-------:|
+|   ❌   |   ✅   |   ✅️    |
 
 ## Quick Start
-
-### Installation
-
-Add this to your package's `pubspec.yaml` file:
-
-```yaml
-dependencies:
-  window_manager: ^0.4.2
-```
-
-Or
-
-```yaml
-dependencies:
-  window_manager:
-    git:
-      url: https://github.com/leanflutter/window_manager.git
-      ref: main
-```
 
 ### Usage
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:window_manager_plus/window_manager_plus.dart';
 
-void main() async {
+// Must add args argument.
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   // Must add this line.
-  await windowManager.ensureInitialized();
+  await WindowManager.ensureInitialized(args.isEmpty ? 0 : int.parse(args[0]));
 
   WindowOptions windowOptions = WindowOptions(
     size: Size(800, 600),
@@ -177,9 +158,9 @@ void main() async {
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
   );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
+  WindowManager.current.waitUntilReadyToShow(windowOptions, () async {
+    await WindowManager.current.show();
+    await WindowManager.current.focus();
   });
 
   runApp(MyApp());
@@ -193,7 +174,7 @@ void main() async {
 
 ```dart
 import 'package:flutter/cupertino.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:window_manager_plus/window_manager_plus.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -204,12 +185,12 @@ class _HomePageState extends State<HomePage> with WindowListener {
   @override
   void initState() {
     super.initState();
-    windowManager.addListener(this);
+    WindowManager.current.addListener(this);
   }
 
   @override
   void dispose() {
-    windowManager.removeListener(this);
+    WindowManager.current.removeListener(this);
     super.dispose();
   }
 
@@ -219,62 +200,62 @@ class _HomePageState extends State<HomePage> with WindowListener {
   }
 
   @override
-  void onWindowEvent(String eventName) {
+  void onWindowEvent(String eventName, [int? windowId]) {
     print('[WindowManager] onWindowEvent: $eventName');
   }
 
   @override
-  void onWindowClose() {
+  void onWindowClose([int? windowId]) {
     // do something
   }
 
   @override
-  void onWindowFocus() {
+  void onWindowFocus([int? windowId]) {
     // do something
   }
 
   @override
-  void onWindowBlur() {
+  void onWindowBlur([int? windowId]) {
     // do something
   }
 
   @override
-  void onWindowMaximize() {
+  void onWindowMaximize([int? windowId]) {
     // do something
   }
 
   @override
-  void onWindowUnmaximize() {
+  void onWindowUnmaximize([int? windowId]) {
     // do something
   }
 
   @override
-  void onWindowMinimize() {
+  void onWindowMinimize([int? windowId]) {
     // do something
   }
 
   @override
-  void onWindowRestore() {
+  void onWindowRestore([int? windowId]) {
     // do something
   }
 
   @override
-  void onWindowResize() {
+  void onWindowResize([int? windowId]) {
     // do something
   }
 
   @override
-  void onWindowMove() {
+  void onWindowMove([int? windowId]) {
     // do something
   }
 
   @override
-  void onWindowEnterFullScreen() {
+  void onWindowEnterFullScreen([int? windowId]) {
     // do something
   }
 
   @override
-  void onWindowLeaveFullScreen() {
+  void onWindowLeaveFullScreen([int? windowId]) {
     // do something
   }
 }

@@ -1,9 +1,9 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:window_manager/window_manager.dart';
-import 'package:window_manager_example/pages/home.dart';
-import 'package:window_manager_example/utils/config.dart';
+import 'package:window_manager_plus/window_manager.dart';
+import 'package:window_manager_plus_example/pages/home.dart';
+import 'package:window_manager_plus_example/utils/config.dart';
 
 void main(List<String> args) async {
   if (kDebugMode) {
@@ -11,7 +11,7 @@ void main(List<String> args) async {
   }
 
   WidgetsFlutterBinding.ensureInitialized();
-  await WindowManager.ensureInitialized(args.isEmpty ? 0 : int.parse(args[0]));
+  await WindowManager.ensureInitialized(args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0);
 
   WindowOptions windowOptions = const WindowOptions(
     size: Size(800, 600),

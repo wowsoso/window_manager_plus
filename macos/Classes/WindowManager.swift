@@ -51,8 +51,56 @@ extension NSRect {
     }
 }
 
+/// Add extra hooks for window
+class FlutterWindowInner: NSPanel {
+    override public func order(_ place: NSWindow.OrderingMode, relativeTo otherWin: Int) {
+        super.order(place, relativeTo: otherWin)
+        hiddenWindowAtLaunch()
+    }
+    
+    deinit {
+        debugPrint("FlutterWindowInner dealloc")
+    }
+}
+
 public class WindowManager: NSObject, NSWindowDelegate {
-    public var onEvent:((String) -> Void)?
+    private static var autoincrementId: Int64 = 0;
+    private static var windows: [Int64:FlutterWindowInner?] = [:];
+    public static var windowManagers: [Int64:WindowManager?] = [:];
+    
+    public var staticChannel: FlutterMethodChannel?
+    public var channel: FlutterMethodChannel?
+    
+    public var id: Int64 = -1;
+    
+    public static func createWindow(args: [String]) -> Int64 {
+        if let RegisterGeneratedPlugins = WindowManagerPlugin.RegisterGeneratedPlugins {
+            autoincrementId += 1
+            let windowId = autoincrementId
+            
+            let project = FlutterDartProject()
+            var commandLineArguments = [String(windowId)]
+            commandLineArguments.append(contentsOf: args)
+            project.dartEntrypointArguments = commandLineArguments
+            
+            let window = FlutterWindowInner(
+                contentRect: NSRect(x: 0, y: 0, width: 480, height: 270),
+                styleMask: [.miniaturizable, .closable, .resizable, .titled, .fullSizeContentView],
+                backing: .buffered, defer: false)
+            
+            let flutterViewController = FlutterViewController(project: project)
+            window.contentViewController = flutterViewController
+            
+            RegisterGeneratedPlugins(flutterViewController)
+            
+            WindowManager.windows[windowId] = window
+            
+            window.makeKeyAndOrderFront(nil)
+            
+            return windowId
+        }
+        return -1
+    }
     
     private var _mainWindow: NSWindow?
     public var mainWindow: NSWindow {
@@ -518,15 +566,26 @@ public class WindowManager: NSObject, NSWindowDelegate {
     // NSWindowDelegate
     
     public func windowShouldClose(_ sender: NSWindow) -> Bool {
-        _emitEvent("close")
+        emitEvent("close")
         if (isPreventClose()) {
             return false
         }
         return true;
     }
     
+    public func windowWillClose(_ notification: Notification) {
+        WindowManager.windowManagers[id]??.staticChannel?.setMethodCallHandler(nil)
+        WindowManager.windowManagers[id]??.staticChannel = nil
+        WindowManager.windowManagers[id]??.channel?.setMethodCallHandler(nil)
+        WindowManager.windowManagers[id]??.channel = nil
+        WindowManager.windowManagers[id]??._mainWindow?.delegate = nil
+        WindowManager.windowManagers[id]??._mainWindow = nil
+        WindowManager.windowManagers[id] = nil
+        WindowManager.windows[id] = nil
+    }
+    
     public func windowShouldZoom(_ window: NSWindow, toFrame newFrame: NSRect) -> Bool {
-        _emitEvent("maximize")
+        emitEvent("maximize")
         if (isMaximizable()) {
             return true
         }
@@ -534,68 +593,89 @@ public class WindowManager: NSObject, NSWindowDelegate {
     }
     
     public func windowDidResize(_ notification: Notification) {
-        _emitEvent("resize")
+        emitEvent("resize")
         if (!_isMaximized && mainWindow.isZoomed) {
             _isMaximized = true
-            _emitEvent("maximize")
+            emitEvent("maximize")
         }
         if (_isMaximized && !mainWindow.isZoomed) {
             _isMaximized = false
-            _emitEvent("unmaximize")
+            emitEvent("unmaximize")
         }
     }
     
     public func windowDidEndLiveResize(_ notification: Notification) {
-        _emitEvent("resized")
+        emitEvent("resized")
     }
     
     public func windowWillMove(_ notification: Notification) {
-        _emitEvent("move")
+        emitEvent("move")
     }
     
     public func windowDidMove(_ notification: Notification) {
-        _emitEvent("moved")
+        emitEvent("moved")
     }
     
     public func windowDidBecomeKey(_ notification: Notification) {
         if (mainWindow is NSPanel) {
-            _emitEvent("focus");
+            emitEvent("focus");
         }
     }
     
     public func windowDidResignKey(_ notification: Notification) {
         if (mainWindow is NSPanel) {
-            _emitEvent("blur");
+            emitEvent("blur");
         }
     }
     
     public func windowDidBecomeMain(_ notification: Notification) {
-        _emitEvent("focus");
+        emitEvent("focus");
     }
     
     public func windowDidResignMain(_ notification: Notification){
-        _emitEvent("blur");
+        emitEvent("blur");
     }
     
     public func windowDidMiniaturize(_ notification: Notification) {
-        _emitEvent("minimize");
+        emitEvent("minimize");
     }
     
     public func windowDidDeminiaturize(_ notification: Notification) {
-        _emitEvent("restore");
+        emitEvent("restore");
     }
     
     public func windowDidEnterFullScreen(_ notification: Notification){
-        _emitEvent("enter-full-screen");
+        emitEvent("enter-full-screen");
     }
     
     public func windowDidExitFullScreen(_ notification: Notification){
-        _emitEvent("leave-full-screen");
+        emitEvent("leave-full-screen");
     }
     
-    public func _emitEvent(_ eventName: String) {
-        if (onEvent != nil) {
-            onEvent!(eventName)
+    public func emitEvent(_ eventName: String) {
+        let args: NSDictionary = [
+            "eventName": eventName,
+        ]
+        channel?.invokeMethod("onEvent", arguments: args, result: nil)
+        
+        emitGlobalEvent(eventName)
+    }
+    
+    public func emitGlobalEvent(_ eventName: String) {
+        let args: NSDictionary = [
+            "eventName": eventName,
+            "windowId": id
+        ]
+        
+        let wManagers = WindowManager.windowManagers;
+        wManagers.forEach { (key: Int64, value: WindowManager?) in
+            if let wm = value {
+                wm.channel?.invokeMethod("onEvent", arguments: args)
+            }
         }
+    }
+    
+    deinit {
+        debugPrint("WindowManager dealloc")
     }
 }

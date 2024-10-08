@@ -7,8 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:preference_list/preference_list.dart';
 import 'package:tray_manager/tray_manager.dart';
-import 'package:window_manager/window_manager.dart';
-import 'package:window_manager_example/utils/config.dart';
+import 'package:window_manager_plus/window_manager.dart';
+import 'package:window_manager_plus_example/utils/config.dart';
 
 const _kSizes = [
   Size(400, 400),

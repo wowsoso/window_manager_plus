@@ -5,13 +5,10 @@ public class WindowManagerPlugin: NSObject, FlutterPlugin {
     public static var RegisterGeneratedPlugins:((FlutterPluginRegistry) -> Void)?
     
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "window_manager", binaryMessenger: registrar.messenger)
-        let instance = WindowManagerPlugin(registrar, channel)
-        registrar.addMethodCallDelegate(instance, channel: channel)
+        let _ = WindowManagerPlugin(registrar)
     }
     
     private var registrar: FlutterPluginRegistrar!;
-    private var channel: FlutterMethodChannel!
     
     private var mainWindow: NSWindow {
         get {
@@ -22,245 +19,302 @@ public class WindowManagerPlugin: NSObject, FlutterPlugin {
     private var _inited: Bool = false
     private var windowManager: WindowManager = WindowManager()
     
-    public init(_ registrar: FlutterPluginRegistrar, _ channel: FlutterMethodChannel) {
+    public init(_ registrar: FlutterPluginRegistrar) {
         super.init()
         self.registrar = registrar
-        self.channel = channel
+        
+        windowManager.staticChannel = FlutterMethodChannel(name: "window_manager_static", binaryMessenger: registrar.messenger)
+        windowManager.staticChannel?.setMethodCallHandler(staticHandle)
+        
+        windowManager.channel = FlutterMethodChannel(name: "window_manager", binaryMessenger: registrar.messenger)
+        windowManager.channel?.setMethodCallHandler(handle)
     }
     
-    private func ensureInitialized() {
+    private func ensureInitialized(windowId: Int64) {
         if (!_inited) {
+            windowManager.id = windowId;
             windowManager.mainWindow = mainWindow
-            windowManager.onEvent = {
-                (eventName: String) in
-                self._emitEvent(eventName)
-            }
+            
+            windowManager.channel?.setMethodCallHandler(nil)
+            windowManager.channel = FlutterMethodChannel(name: "window_manager_\(windowManager.id)", binaryMessenger: registrar.messenger)
+            windowManager.channel?.setMethodCallHandler(handle)
+            
+            WindowManager.windowManagers[windowId] = windowManager
             _inited = true
+        }
+    }
+    
+    public func staticHandle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let methodName: String = call.method
+        let args: [String: Any] = call.arguments as? [String: Any] ?? [:]
+        
+        switch (methodName) {
+        case "createWindow":
+            let encodedArgs = args["args"] as? [String] ?? []
+            let windowId = WindowManager.createWindow(args: encodedArgs)
+            result(windowId >= 0 ? windowId : nil)
+            break
+        case "getAllWindowManagerIds":
+            let keys = Array<Int64>(WindowManager.windowManagers.keys.filter { key in
+                return WindowManager.windowManagers[key] != nil
+            })
+            result(keys)
+            break
+        default:
+            result(FlutterMethodNotImplemented)
         }
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         let methodName: String = call.method
         let args: [String: Any] = call.arguments as? [String: Any] ?? [:]
+        let windowId = args["windowId"] as? Int64 ?? -1;
+        
+        var wManager = windowManager
+        if windowId >= 0, let wm = WindowManager.windowManagers[windowId], let wm2 = wm {
+            wManager = wm2
+        }
         
         switch (methodName) {
         case "ensureInitialized":
-            ensureInitialized()
-            result(true)
+            if (windowId >= 0) {
+                ensureInitialized(windowId: windowId)
+                result(true)
+                windowManager.emitGlobalEvent("initialized")
+            } else {
+                result(FlutterError(code: "0", message: "Cannot ensureInitialized! windowId >= 0 is required", details: nil))
+            }
+            break
+        case "invokeMethodToWindow":
+            if let targetWindowId = args["targetWindowId"] as? Int64, let wm = WindowManager.windowManagers[targetWindowId], let wm2 = wm {
+                wm2.channel?.invokeMethod("onEvent", arguments: args["args"]) {(value) -> Void in
+                    if value is FlutterError {
+                        result(value)
+                    }
+                    else if (value as? NSObject) == FlutterMethodNotImplemented {
+                        result(FlutterMethodNotImplemented)
+                    }
+                    else {
+                        result(value)
+                    }
+                }
+            } else {
+                result(FlutterError(code: "0", message: "Cannot invokeMethodToWindow! targetWindowId not found", details: nil))
+            }
             break
         case "waitUntilReadyToShow":
-            windowManager.waitUntilReadyToShow()
+            wManager.waitUntilReadyToShow()
             result(true)
             break
         case "setAsFrameless":
-            windowManager.setAsFrameless()
+            wManager.setAsFrameless()
             result(true)
             break
         case "destroy":
-            windowManager.destroy()
+            wManager.destroy()
             result(true)
             break
         case "close":
-            windowManager.close()
+            wManager.close()
             result(true)
             break
         case "isPreventClose":
-            result(windowManager.isPreventClose())
+            result(wManager.isPreventClose())
             break
         case "setPreventClose":
-            windowManager.setPreventClose(args)
+            wManager.setPreventClose(args)
             result(true)
             break
         case "focus":
-            windowManager.focus()
+            wManager.focus()
             result(true)
             break
         case "blur":
-            windowManager.blur()
+            wManager.blur()
             result(true)
             break
         case "isFocused":
-            result(windowManager.isFocused())
+            result(wManager.isFocused())
             break
         case "show":
-            windowManager.show()
+            wManager.show()
             result(true)
             break
         case "hide":
-            windowManager.hide()
+            wManager.hide()
             result(true)
             break
         case "isVisible":
-            result(windowManager.isVisible())
+            result(wManager.isVisible())
             break
         case "isMaximized":
-            result(windowManager.isMaximized())
+            result(wManager.isMaximized())
             break
         case "maximize":
-            windowManager.maximize()
+            wManager.maximize()
             result(true)
             break
         case "unmaximize":
-            windowManager.unmaximize()
+            wManager.unmaximize()
             result(true)
             break
         case "isMinimized":
-            result(windowManager.isMinimized())
+            result(wManager.isMinimized())
             break
         case "isMaximizable":
-            result(windowManager.isMaximizable())
+            result(wManager.isMaximizable())
             break
         case "setMaximizable":
-            windowManager.setIsMaximizable(args)
+            wManager.setIsMaximizable(args)
             result(true)
             break
         case "minimize":
-            windowManager.minimize()
+            wManager.minimize()
             result(true)
             break
         case "restore":
-            windowManager.restore()
+            wManager.restore()
             result(true)
             break
         case "isDockable":
-            result(windowManager.isDockable())
+            result(wManager.isDockable())
             break
         case "isDocked":
-            result(windowManager.isDocked())
+            result(wManager.isDocked())
             break
         case "dock":
-            windowManager.dock(args)
+            wManager.dock(args)
             result(true)
             break
         case "undock":
-            windowManager.undock()
+            wManager.undock()
             result(true)
             break
         case "isFullScreen":
-            result(windowManager.isFullScreen())
+            result(wManager.isFullScreen())
             break
         case "setFullScreen":
-            windowManager.setFullScreen(args)
+            wManager.setFullScreen(args)
             result(true)
             break
         case "setAspectRatio":
-            windowManager.setAspectRatio(args)
+            wManager.setAspectRatio(args)
             result(true)
             break
         case "setBackgroundColor":
-            windowManager.setBackgroundColor(args)
+            wManager.setBackgroundColor(args)
             result(true)
             break
         case "getBounds":
-            result(windowManager.getBounds())
+            result(wManager.getBounds())
             break
         case "setBounds":
-            windowManager.setBounds(args)
+            wManager.setBounds(args)
             result(true)
             break
         case "setMinimumSize":
-            windowManager.setMinimumSize(args)
+            wManager.setMinimumSize(args)
             result(true)
             break
         case "setMaximumSize":
-            windowManager.setMaximumSize(args)
+            wManager.setMaximumSize(args)
             result(true)
             break
         case "isResizable":
-            result(windowManager.isResizable())
+            result(wManager.isResizable())
             break
         case "setResizable":
-            windowManager.setResizable(args)
+            wManager.setResizable(args)
             result(true)
             break
         case "isMovable":
-            result(windowManager.isMovable())
+            result(wManager.isMovable())
             break
         case "setMovable":
-            windowManager.setMovable(args)
+            wManager.setMovable(args)
             result(true)
             break
         case "isMinimizable":
-            result(windowManager.isMinimizable())
+            result(wManager.isMinimizable())
             break
         case "setMinimizable":
-            windowManager.setMinimizable(args)
+            wManager.setMinimizable(args)
             result(true)
             break
         case "isClosable":
-            result(windowManager.isClosable())
+            result(wManager.isClosable())
             break
         case "setClosable":
-            windowManager.setClosable(args)
+            wManager.setClosable(args)
             result(true)
             break
         case "isAlwaysOnTop":
-            result(windowManager.isAlwaysOnTop())
+            result(wManager.isAlwaysOnTop())
             break
         case "setAlwaysOnTop":
-            windowManager.setAlwaysOnTop(args)
+            wManager.setAlwaysOnTop(args)
             result(true)
             break
         case "getTitle":
-            result(windowManager.getTitle())
+            result(wManager.getTitle())
             break
         case "setTitle":
-            windowManager.setTitle(args)
+            wManager.setTitle(args)
             result(true)
             break
         case "setTitleBarStyle":
-            windowManager.setTitleBarStyle(args)
+            wManager.setTitleBarStyle(args)
             result(true)
             break
         case "getTitleBarHeight":
-            result(windowManager.getTitleBarHeight())
+            result(wManager.getTitleBarHeight())
             break
         case "isSkipTaskbar":
-            result(windowManager.isSkipTaskbar())
+            result(wManager.isSkipTaskbar())
             break
         case "setSkipTaskbar":
-            windowManager.setSkipTaskbar(args)
+            wManager.setSkipTaskbar(args)
             result(true)
             break
         case "setBadgeLabel":
-            windowManager.setBadgeLabel(args)
+            wManager.setBadgeLabel(args)
             result(true)
             break
         case "setProgressBar":
-            windowManager.setProgressBar(args)
+            wManager.setProgressBar(args)
             result(true)
             break
         case "isVisibleOnAllWorkspaces":
-            result(windowManager.isVisibleOnAllWorkspaces())
+            result(wManager.isVisibleOnAllWorkspaces())
             break
         case "setVisibleOnAllWorkspaces":
-            windowManager.setVisibleOnAllWorkspaces(args)
+            wManager.setVisibleOnAllWorkspaces(args)
             result(true)
             break
         case "hasShadow":
-            result(windowManager.hasShadow())
+            result(wManager.hasShadow())
             break
         case "setHasShadow":
-            windowManager.setHasShadow(args)
+            wManager.setHasShadow(args)
             result(true)
             break
         case "getOpacity":
-            result(windowManager.getOpacity())
+            result(wManager.getOpacity())
             break
         case "setOpacity":
-            windowManager.setOpacity(args)
+            wManager.setOpacity(args)
             result(true)
             break
         case "setBrightness":
-            windowManager.setBrightness(args)
+            wManager.setBrightness(args)
             result(true)
             break
         case "setIgnoreMouseEvents":
-            windowManager.setIgnoreMouseEvents(args)
+            wManager.setIgnoreMouseEvents(args)
             result(true)
             break
         case "startDragging":
-            windowManager.startDragging()
+            wManager.startDragging()
             result(true)
             break
         default:
@@ -268,10 +322,7 @@ public class WindowManagerPlugin: NSObject, FlutterPlugin {
         }
     }
     
-    public func _emitEvent(_ eventName: String) {
-        let args: NSDictionary = [
-            "eventName": eventName,
-        ]
-        channel.invokeMethod("onEvent", arguments: args, result: nil)
+    deinit {
+        debugPrint("WindowManagerPlugin dealloc")
     }
 }
