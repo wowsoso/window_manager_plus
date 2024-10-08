@@ -35,7 +35,7 @@ this new implementation allows the creation and management of multiple windows.
       - [Windows](#windows-2)
 - [Articles](#articles)
 - [API](#api)
-  - [WindowManager](#windowmanager)
+  - [WindowManagerPlus](#windowmanagerplus)
     - [Methods](#methods)
     - [Static Methods](#static-methods)
   - [WindowListener](#windowlistener)
