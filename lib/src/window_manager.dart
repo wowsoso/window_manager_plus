@@ -782,7 +782,7 @@ class WindowManagerPlus {
     await _invokeMethod('setSkipTaskbar', arguments);
   }
 
-  /// Sets progress value in progress bar. Valid range is [0, 1.0].
+  /// Sets progress value in progress bar. Valid range is `[0, 1.0]`.
   ///
   /// **Supported Platforms**:
   /// - Windows
@@ -846,7 +846,7 @@ class WindowManagerPlus {
   /// Set/unset label on taskbar(dock) app icon
   ///
   /// Note that it's required to request access at your AppDelegate.swift like this:
-  /// UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge])
+  /// `UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge])`
   ///
   /// **Supported Platforms**:
   /// - macOS
