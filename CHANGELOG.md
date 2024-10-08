@@ -1,3 +1,7 @@
+## 1.0.5
+
+- Updated README
+
 ## 1.0.4
 
 - Fixed windows crash if createWindow args are null

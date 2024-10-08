@@ -16,15 +16,14 @@ this new implementation allows the creation and management of multiple windows.
 
 ---
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 - [Platform Support](#platform-support)
 - [Quick Start](#quick-start)
   - [Setup to support multiple windows](#setup-to-support-multiple-windows)
     - [macOS](#macos)
     - [Windows](#windows)
   - [Usage](#usage)
+    - [Create a new window](#create-a-new-window)
+    - [Communication between windows](#communication-between-windows)
     - [Listening events](#listening-events)
     - [Quit on close](#quit-on-close)
       - [macOS](#macos-1)
@@ -38,111 +37,11 @@ this new implementation allows the creation and management of multiple windows.
 - [API](#api)
   - [WindowManager](#windowmanager)
     - [Methods](#methods)
-      - [addListener(WindowListener listener) → void](#addlistenerwindowlistener-listener-%E2%86%92-void)
-      - [blur() → Future<void\>](#blur-%E2%86%92-futurevoid%5C)
-      - [center({bool animate = false}) → Future<void\>](#centerbool-animate--false-%E2%86%92-futurevoid%5C)
-      - [close() → Future<void\>](#close-%E2%86%92-futurevoid%5C)
-      - [destroy() → Future<void\>](#destroy-%E2%86%92-futurevoid%5C)
-      - [dock({required DockSide side, required int width}) → Future<void\>](#dockrequired-dockside-side-required-int-width-%E2%86%92-futurevoid%5C)
-      - [focus() → Future<void\>](#focus-%E2%86%92-futurevoid%5C)
-      - [getBounds() → Future<Rect\>](#getbounds-%E2%86%92-futurerect%5C)
-      - [getDevicePixelRatio() → double](#getdevicepixelratio-%E2%86%92-double)
-      - [getOpacity() → Future<double\>](#getopacity-%E2%86%92-futuredouble%5C)
-      - [getPosition() → Future<Offset\>](#getposition-%E2%86%92-futureoffset%5C)
-      - [getSize() → Future<Size\>](#getsize-%E2%86%92-futuresize%5C)
-      - [getTitle() → Future<String\>](#gettitle-%E2%86%92-futurestring%5C)
-      - [getTitleBarHeight() → Future<int\>](#gettitlebarheight-%E2%86%92-futureint%5C)
-      - [hasShadow() → Future<bool\>](#hasshadow-%E2%86%92-futurebool%5C)
-      - [hide() → Future<void\>](#hide-%E2%86%92-futurevoid%5C)
-      - [invokeMethodToWindow(int targetWindowId, String method, \[dynamic args\]) → Future](#invokemethodtowindowint-targetwindowid-string-method-%5Cdynamic-args%5C-%E2%86%92-future)
-      - [isAlwaysOnBottom() → Future<bool\>](#isalwaysonbottom-%E2%86%92-futurebool%5C)
-      - [isAlwaysOnTop() → Future<bool\>](#isalwaysontop-%E2%86%92-futurebool%5C)
-      - [isClosable() → Future<bool\>](#isclosable-%E2%86%92-futurebool%5C)
-      - [isDockable() → Future<bool\>](#isdockable-%E2%86%92-futurebool%5C)
-      - [isDocked() → Future<DockSide?\>](#isdocked-%E2%86%92-futuredockside%5C)
-      - [isFocused() → Future<bool\>](#isfocused-%E2%86%92-futurebool%5C)
-      - [isFullScreen() → Future<bool\>](#isfullscreen-%E2%86%92-futurebool%5C)
-      - [isMaximizable() → Future<bool\>](#ismaximizable-%E2%86%92-futurebool%5C)
-      - [isMaximized() → Future<bool\>](#ismaximized-%E2%86%92-futurebool%5C)
-      - [isMinimizable() → Future<bool\>](#isminimizable-%E2%86%92-futurebool%5C)
-      - [isMinimized() → Future<bool\>](#isminimized-%E2%86%92-futurebool%5C)
-      - [isMovable() → Future<bool\>](#ismovable-%E2%86%92-futurebool%5C)
-      - [isPreventClose() → Future<bool\>](#ispreventclose-%E2%86%92-futurebool%5C)
-      - [isResizable() → Future<bool\>](#isresizable-%E2%86%92-futurebool%5C)
-      - [isSkipTaskbar() → Future<bool\>](#isskiptaskbar-%E2%86%92-futurebool%5C)
-      - [isVisible() → Future<bool\>](#isvisible-%E2%86%92-futurebool%5C)
-      - [isVisibleOnAllWorkspaces() → Future<bool\>](#isvisibleonallworkspaces-%E2%86%92-futurebool%5C)
-      - [maximize({bool vertically = false}) → Future<void\>](#maximizebool-vertically--false-%E2%86%92-futurevoid%5C)
-      - [minimize() → Future<void\>](#minimize-%E2%86%92-futurevoid%5C)
-      - [popUpWindowMenu() → Future<void\>](#popupwindowmenu-%E2%86%92-futurevoid%5C)
-      - [removeListener(WindowListener listener) → void](#removelistenerwindowlistener-listener-%E2%86%92-void)
-      - [restore() → Future<void\>](#restore-%E2%86%92-futurevoid%5C)
-      - [setAlignment(Alignment alignment, {bool animate = false}) → Future<void\>](#setalignmentalignment-alignment-bool-animate--false-%E2%86%92-futurevoid%5C)
-      - [setAlwaysOnBottom(bool isAlwaysOnBottom) → Future<void\>](#setalwaysonbottombool-isalwaysonbottom-%E2%86%92-futurevoid%5C)
-      - [setAlwaysOnTop(bool isAlwaysOnTop) → Future<void\>](#setalwaysontopbool-isalwaysontop-%E2%86%92-futurevoid%5C)
-      - [setAsFrameless() → Future<void\>](#setasframeless-%E2%86%92-futurevoid%5C)
-      - [setAspectRatio(double aspectRatio) → Future<void\>](#setaspectratiodouble-aspectratio-%E2%86%92-futurevoid%5C)
-      - [setBackgroundColor(Color backgroundColor) → Future<void\>](#setbackgroundcolorcolor-backgroundcolor-%E2%86%92-futurevoid%5C)
-      - [setBadgeLabel(\[String? label\]) → Future<void\>](#setbadgelabel%5Cstring-label%5C-%E2%86%92-futurevoid%5C)
-      - [setBounds(Rect? bounds, {Offset? position, Size? size, bool animate = false}) → Future<void\>](#setboundsrect-bounds-offset-position-size-size-bool-animate--false-%E2%86%92-futurevoid%5C)
-      - [setBrightness(Brightness brightness) → Future<void\>](#setbrightnessbrightness-brightness-%E2%86%92-futurevoid%5C)
-      - [setClosable(bool isClosable) → Future<void\>](#setclosablebool-isclosable-%E2%86%92-futurevoid%5C)
-      - [setFullScreen(bool isFullScreen) → Future<void\>](#setfullscreenbool-isfullscreen-%E2%86%92-futurevoid%5C)
-      - [setHasShadow(bool hasShadow) → Future<void\>](#sethasshadowbool-hasshadow-%E2%86%92-futurevoid%5C)
-      - [setIcon(String iconPath) → Future<void\>](#seticonstring-iconpath-%E2%86%92-futurevoid%5C)
-      - [setIgnoreMouseEvents(bool ignore, {bool forward = false}) → Future<void\>](#setignoremouseeventsbool-ignore-bool-forward--false-%E2%86%92-futurevoid%5C)
-      - [setMaximizable(bool isMaximizable) → Future<void\>](#setmaximizablebool-ismaximizable-%E2%86%92-futurevoid%5C)
-      - [setMaximumSize(Size size) → Future<void\>](#setmaximumsizesize-size-%E2%86%92-futurevoid%5C)
-      - [setMinimizable(bool isMinimizable) → Future<void\>](#setminimizablebool-isminimizable-%E2%86%92-futurevoid%5C)
-      - [setMinimumSize(Size size) → Future<void\>](#setminimumsizesize-size-%E2%86%92-futurevoid%5C)
-      - [setMovable(bool isMovable) → Future<void\>](#setmovablebool-ismovable-%E2%86%92-futurevoid%5C)
-      - [setOpacity(double opacity) → Future<void\>](#setopacitydouble-opacity-%E2%86%92-futurevoid%5C)
-      - [setPosition(Offset position, {bool animate = false}) → Future<void\>](#setpositionoffset-position-bool-animate--false-%E2%86%92-futurevoid%5C)
-      - [setPreventClose(bool isPreventClose) → Future<void\>](#setpreventclosebool-ispreventclose-%E2%86%92-futurevoid%5C)
-      - [setProgressBar(double progress) → Future<void\>](#setprogressbardouble-progress-%E2%86%92-futurevoid%5C)
-      - [setResizable(bool isResizable) → Future<void\>](#setresizablebool-isresizable-%E2%86%92-futurevoid%5C)
-      - [setSize(Size size, {bool animate = false}) → Future<void\>](#setsizesize-size-bool-animate--false-%E2%86%92-futurevoid%5C)
-      - [setSkipTaskbar(bool isSkipTaskbar) → Future<void\>](#setskiptaskbarbool-isskiptaskbar-%E2%86%92-futurevoid%5C)
-      - [setTitle(String title) → Future<void\>](#settitlestring-title-%E2%86%92-futurevoid%5C)
-      - [setTitleBarStyle(TitleBarStyle titleBarStyle, {bool windowButtonVisibility = true}) → Future<void\>](#settitlebarstyletitlebarstyle-titlebarstyle-bool-windowbuttonvisibility--true-%E2%86%92-futurevoid%5C)
-      - [setVisibleOnAllWorkspaces(bool visible, {bool? visibleOnFullScreen}) → Future<void\>](#setvisibleonallworkspacesbool-visible-bool-visibleonfullscreen-%E2%86%92-futurevoid%5C)
-      - [show({bool inactive = false}) → Future<void\>](#showbool-inactive--false-%E2%86%92-futurevoid%5C)
-      - [startDragging() → Future<void\>](#startdragging-%E2%86%92-futurevoid%5C)
-      - [startResizing(ResizeEdge resizeEdge) → Future<void\>](#startresizingresizeedge-resizeedge-%E2%86%92-futurevoid%5C)
-      - [toString() → String](#tostring-%E2%86%92-string)
-      - [undock() → Future<bool\>](#undock-%E2%86%92-futurebool%5C)
-      - [unmaximize() → Future<void\>](#unmaximize-%E2%86%92-futurevoid%5C)
-      - [waitUntilReadyToShow(\[WindowOptions? options, VoidCallback? callback\]) → Future<void\>](#waituntilreadytoshow%5Cwindowoptions-options-voidcallback-callback%5C-%E2%86%92-futurevoid%5C)
     - [Static Methods](#static-methods)
-      - [addGlobalListener(WindowListener listener) → void](#addgloballistenerwindowlistener-listener-%E2%86%92-void)
-      - [createWindow(\[List<String\>? args\]) → Future<WindowManagerPlus?\>](#createwindow%5Cliststring%5C-args%5C-%E2%86%92-futurewindowmanagerplus%5C)
-      - [ensureInitialized(int windowId) → Future<void\>](#ensureinitializedint-windowid-%E2%86%92-futurevoid%5C)
-      - [fromWindowId(int windowId) → [WindowManagerPlus](https://pub.##### dev/documentation/window_manager_plus/latest/WindowManagerPlus-class.html)](#fromwindowidint-windowid-%E2%86%92-windowmanagerplushttpspub-devdocumentationwindow_manager_pluslatestwindowmanagerplus-classhtml)
-      - [getAllWindowManagerIds() → Future<List<int\>\>](#getallwindowmanagerids-%E2%86%92-futurelistint%5C%5C)
-      - [removeGlobalListener(WindowListener listener) → void](#removegloballistenerwindowlistener-listener-%E2%86%92-void)
   - [WindowListener](#windowlistener)
     - [Methods](#methods-1)
-      - [onEventFromWindow(String eventName, int fromWindowId, dynamic arguments) → Future](#oneventfromwindowstring-eventname-int-fromwindowid-dynamic-arguments-%E2%86%92-future)
-      - [onWindowBlur(\[int? windowId\]) → void](#onwindowblur%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowClose(\[int? windowId\]) → void](#onwindowclose%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowDocked(\[int? windowId\]) → void](#onwindowdocked%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowEnterFullScreen(\[int? windowId\]) → void](#onwindowenterfullscreen%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowEvent(String eventName, \[int? windowId\]) → void](#onwindoweventstring-eventname-%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowFocus(\[int? windowId\]) → void](#onwindowfocus%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowLeaveFullScreen(\[int? windowId\]) → void](#onwindowleavefullscreen%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowMaximize(\[int? windowId\]) → void](#onwindowmaximize%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowMinimize(\[int? windowId\]) → void](#onwindowminimize%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowMove(\[int? windowId\]) → void](#onwindowmove%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowMoved(\[int? windowId\]) → void](#onwindowmoved%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowResize(\[int? windowId\]) → void](#onwindowresize%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowResized(\[int? windowId\]) → void](#onwindowresized%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowRestore(\[int? windowId\]) → void](#onwindowrestore%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowUndocked(\[int? windowId\]) → void](#onwindowundocked%5Cint-windowid%5C-%E2%86%92-void)
-      - [onWindowUnmaximize(\[int? windowId\]) → void](#onwindowunmaximize%5Cint-windowid%5C-%E2%86%92-void)
 - [Contributors](#contributors)
 - [License](#license)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Platform Support
 
@@ -284,16 +183,27 @@ The others called inside the `WindowManagerPlusPluginSetWindowCreatedCallback` s
 
 ### Usage
 
+You must call `WindowManagerPlus.ensureInitialized` static method and `await` it before using any `WindowManagerPlus` methods or `WindowManagerPlus.current`.
+It is used to initialize the plugin with the current window ID.
+
+When creating a new window, the `args` parameter of the `main` function will have the window ID as a String.
+You must parse it to an integer and pass it to the `WindowManagerPlus.ensureInitialized` method.
+If the `args` parameter is empty or the first argument is not an integer, then we are in the main window, which ID is exactly `0`.
+
+The other arguments will contain the arguments passed to the `WindowManagerPlus.createWindow` method, if any.
+
 ```dart
 import 'package:flutter/material.dart';
 import 'package:window_manager_plus/window_manager_plus.dart';
 
-// Must add args argument.
+// Must add List<String> args parameter to your main function.
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Must add this line.
+  // await the initialization of the plugin.
+  // Here is an example of how to use ensureInitialized in the main function:
   await WindowManagerPlus.ensureInitialized(args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0);
-
+  
+  // Now you can use the plugin, such as WindowManagerPlus.current
   WindowOptions windowOptions = WindowOptions(
     size: Size(800, 600),
     center: true,
@@ -308,8 +218,63 @@ void main(List<String> args) async {
 
   runApp(MyApp());
 }
-
 ```
+
+#### Create a new window
+
+You can create a new window by calling the `WindowManagerPlus.createWindow` static method.
+If you want control the new window, you can use the return value of the method, which returns a `WindowManagerPlus` instance.
+
+```dart
+final newWindow = await WindowManagerPlus.createWindow(['my test arg 1', 'my test arg 2']);
+if (newWindow != null) {
+  print('New Created Window: $newWindow');
+}
+```
+
+#### Communication between windows
+
+You can communicate with another window by using the `WindowManagerPlus.invokeMethodToWindow` method.
+The first parameter is the ID of the window you want to communicate with.
+The second parameter is the method name you want to call.
+The third parameter is the arguments you want to pass to the method, if any.
+
+The other window must register and implement the `WindowListener` class and override the `WindowListener.onEventFromWindow` method to receive the event.
+
+```dart
+// assuming we are in the first window, Window ID 0, and we want to communicate with the second window.
+final secondWindowId = 1; // ID of the second window
+final result = await WindowManagerPlus.current.invokeMethodToWindow(secondWindowId, 'myTestMethod', ['arg1', 'arg2']);
+// the result will be 'Hello from Window 1'
+
+// assuming we are in the second window, Window ID 1
+class _MyWidgetState extends State<MyWidget> with WindowListener {
+
+  // ...
+
+  @override
+  void initState() {
+    WindowManagerPlus.current.addListener(this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WindowManagerPlus.current.removeListener(this);
+    super.dispose();
+  }
+  
+  // ...
+  
+  @override
+  Future<dynamic> onEventFromWindow(String eventName, int fromWindowId, dynamic arguments) async {
+    print('[${WindowManagerPlus.current}] Event $eventName from Window $fromWindowId with arguments $arguments');
+    return 'Hello from ${WindowManagerPlus.current}';
+  }
+}
+```
+
+Using `WindowManagerPlus.getAllWindowManagerIds()` static method you can get all the window manager ids available.
 
 > Please see the example app of this plugin for a full example.
 
@@ -693,331 +658,331 @@ class _HomePageState extends State<HomePage> with WindowListener {
 ## API
 
 <!-- README_DOC_GEN -->
-### WindowManager
+### WindowManagerPlus
 
 #### Methods
 
-##### [addListener](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/addListener.html)([WindowListener](https://pub.dev/documentation/window_manager_plus/latest/WindowListener-class.html) listener) → void
+##### [addListener](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/addListener.html)([WindowListener](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener-class.html) listener) → void
 
 Add a listener to the window.
 
-##### [blur](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/blur.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [blur](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/blur.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Removes focus from the window.
 
-##### [center](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/center.html)({[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) animate = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [center](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/center.html)({[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) animate = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Moves window to the center of the screen.
 
-##### [close](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/close.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [close](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/close.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Try to close the window.
 
-##### [destroy](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/destroy.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [destroy](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/destroy.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Force closing the window.
 
-##### [dock](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/dock.html)({required [DockSide](https://pub.dev/documentation/window_manager_plus/latest/DockSide.html) side, required [int](https://api.flutter.dev/flutter/dart-core/int-class.html) width}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [dock](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/dock.html)({required [DockSide](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/DockSide.html) side, required [int](https://api.flutter.dev/flutter/dart-core/int-class.html) width}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Docks the window. only works on Windows
 
-##### [focus](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/focus.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [focus](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/focus.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Focuses on the window.
 
-##### [getBounds](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/getBounds.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[Rect](https://api.flutter.dev/flutter/dart-ui/Rect-class.html)\>
+##### [getBounds](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/getBounds.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[Rect](https://api.flutter.dev/flutter/dart-ui/Rect-class.html)\>
 
 Returns `Rect` - The bounds of the window as Object.
 
-##### [getDevicePixelRatio](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/getDevicePixelRatio.html)() → [double](https://api.flutter.dev/flutter/dart-core/double-class.html)
+##### [getDevicePixelRatio](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/getDevicePixelRatio.html)() → [double](https://api.flutter.dev/flutter/dart-core/double-class.html)
 
 Get the device pixel ratio.
 
-##### [getOpacity](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/getOpacity.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[double](https://api.flutter.dev/flutter/dart-core/double-class.html)\>
+##### [getOpacity](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/getOpacity.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[double](https://api.flutter.dev/flutter/dart-core/double-class.html)\>
 
 Returns `double` - between 0.0 (fully transparent) and 1.0 (fully opaque).
 
-##### [getPosition](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/getPosition.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[Offset](https://api.flutter.dev/flutter/dart-ui/Offset-class.html)\>
+##### [getPosition](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/getPosition.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[Offset](https://api.flutter.dev/flutter/dart-ui/Offset-class.html)\>
 
 Returns `Offset` - Contains the window's current position.
 
-##### [getSize](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/getSize.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[Size](https://api.flutter.dev/flutter/dart-ui/Size-class.html)\>
+##### [getSize](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/getSize.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[Size](https://api.flutter.dev/flutter/dart-ui/Size-class.html)\>
 
 Returns `Size` - Contains the window's width and height.
 
-##### [getTitle](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/getTitle.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[String](https://api.flutter.dev/flutter/dart-core/String-class.html)\>
+##### [getTitle](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/getTitle.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[String](https://api.flutter.dev/flutter/dart-core/String-class.html)\>
 
 Returns `String` - The title of the native window.
 
-##### [getTitleBarHeight](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/getTitleBarHeight.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[int](https://api.flutter.dev/flutter/dart-core/int-class.html)\>
+##### [getTitleBarHeight](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/getTitleBarHeight.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[int](https://api.flutter.dev/flutter/dart-core/int-class.html)\>
 
 Returns `int` - The title bar height of the native window.
 
-##### [hasShadow](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/hasShadow.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [hasShadow](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/hasShadow.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window has a shadow. On Windows, always returns true unless window is frameless.
 
-##### [hide](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/hide.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [hide](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/hide.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Hides the window.
 
-##### [invokeMethodToWindow](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/invokeMethodToWindow.html)([int](https://api.flutter.dev/flutter/dart-core/int-class.html) targetWindowId, [String](https://api.flutter.dev/flutter/dart-core/String-class.html) method, \[dynamic args\]) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)
+##### [invokeMethodToWindow](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/invokeMethodToWindow.html)([int](https://api.flutter.dev/flutter/dart-core/int-class.html) targetWindowId, [String](https://api.flutter.dev/flutter/dart-core/String-class.html) method, \[dynamic args\]) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)
 
-Invokes a method on the window with id `targetWindowId`. It could return a Future that resolves to the return value of the invoked method, otherwise `null`. Use [WindowListener.onEventFromWindow](https://pub.##### dev/documentation/window_manager_plus/latest/WindowListener/onEventFromWindow.html) to listen for the event.
+Invokes a method on the window with id `targetWindowId`. It could return a Future that resolves to the return value of the invoked method, otherwise `null`. Use [WindowListener.onEventFromWindow](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onEventFromWindow.html) to listen for the event.
 
-##### [isAlwaysOnBottom](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isAlwaysOnBottom.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isAlwaysOnBottom](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isAlwaysOnBottom.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window is always below other windows.
 
-##### [isAlwaysOnTop](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isAlwaysOnTop.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isAlwaysOnTop](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isAlwaysOnTop.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window is always on top of other windows.
 
-##### [isClosable](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isClosable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isClosable](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isClosable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window can be manually closed by user.
 
-##### [isDockable](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isDockable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isDockable](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isDockable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window is dockable or not.
 
-##### [isDocked](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isDocked.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[DockSide](https://pub.dev/documentation/window_manager_plus/latest/DockSide.html)?\>
+##### [isDocked](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isDocked.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[DockSide](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/DockSide.html)?\>
 
 Returns `bool` - Whether the window is docked.
 
-##### [isFocused](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isFocused.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isFocused](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isFocused.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether window is focused.
 
-##### [isFullScreen](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isFullScreen.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isFullScreen](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isFullScreen.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window is in fullscreen mode.
 
-##### [isMaximizable](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isMaximizable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isMaximizable](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isMaximizable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window can be manually maximized by the user.
 
-##### [isMaximized](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isMaximized.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isMaximized](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isMaximized.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window is maximized.
 
-##### [isMinimizable](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isMinimizable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isMinimizable](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isMinimizable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window can be manually minimized by the user.
 
-##### [isMinimized](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isMinimized.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isMinimized](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isMinimized.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window is minimized.
 
-##### [isMovable](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isMovable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isMovable](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isMovable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window can be moved by user.
 
-##### [isPreventClose](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isPreventClose.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isPreventClose](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isPreventClose.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Check if is intercepting the native close signal.
 
-##### [isResizable](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isResizable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isResizable](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isResizable.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window can be manually resized by the user.
 
-##### [isSkipTaskbar](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isSkipTaskbar.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isSkipTaskbar](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isSkipTaskbar.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether skipping taskbar is enabled.
 
-##### [isVisible](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isVisible.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isVisible](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isVisible.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window is visible to the user.
 
-##### [isVisibleOnAllWorkspaces](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/isVisibleOnAllWorkspaces.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [isVisibleOnAllWorkspaces](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/isVisibleOnAllWorkspaces.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Returns `bool` - Whether the window is visible on all workspaces.
 
-##### [maximize](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/maximize.html)({[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) vertically = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [maximize](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/maximize.html)({[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) vertically = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Maximizes the window. `vertically` simulates aero snap, only works on Windows
 
-##### [minimize](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/minimize.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [minimize](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/minimize.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Minimizes the window. On some platforms the minimized window will be shown in the Dock.
 
-##### [popUpWindowMenu](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/popUpWindowMenu.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [popUpWindowMenu](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/popUpWindowMenu.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
-##### [removeListener](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/removeListener.html)([WindowListener](https://pub.dev/documentation/window_manager_plus/latest/WindowListener-class.html) listener) → void
+##### [removeListener](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/removeListener.html)([WindowListener](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener-class.html) listener) → void
 
 Remove a listener from the window.
 
-##### [restore](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/restore.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [restore](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/restore.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Restores the window from minimized state to its previous state.
 
-##### [setAlignment](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setAlignment.html)([Alignment](https://api.flutter.dev/flutter/painting/Alignment-class.html) alignment, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) animate = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setAlignment](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setAlignment.html)([Alignment](https://api.flutter.dev/flutter/painting/Alignment-class.html) alignment, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) animate = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Move the window to a position aligned with the screen.
 
-##### [setAlwaysOnBottom](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setAlwaysOnBottom.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isAlwaysOnBottom) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setAlwaysOnBottom](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setAlwaysOnBottom.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isAlwaysOnBottom) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets whether the window should show always below other windows.
 
-##### [setAlwaysOnTop](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setAlwaysOnTop.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isAlwaysOnTop) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setAlwaysOnTop](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setAlwaysOnTop.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isAlwaysOnTop) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets whether the window should show always on top of other windows.
 
-##### [setAsFrameless](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setAsFrameless.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setAsFrameless](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setAsFrameless.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 You can call this to remove the window frame (title bar, outline border, etc), which is basically everything except the Flutter view, also can call setTitleBarStyle(TitleBarStyle.normal) or setTitleBarStyle(TitleBarStyle.hidden) to restore it.
 
-##### [setAspectRatio](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setAspectRatio.html)([double](https://api.flutter.dev/flutter/dart-core/double-class.html) aspectRatio) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setAspectRatio](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setAspectRatio.html)([double](https://api.flutter.dev/flutter/dart-core/double-class.html) aspectRatio) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 This will make a window maintain an aspect ratio.
 
-##### [setBackgroundColor](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setBackgroundColor.html)([Color](https://api.flutter.dev/flutter/dart-ui/Color-class.html) backgroundColor) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setBackgroundColor](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setBackgroundColor.html)([Color](https://api.flutter.dev/flutter/dart-ui/Color-class.html) backgroundColor) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets the background color of the window.
 
-##### [setBadgeLabel](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setBadgeLabel.html)(\[[String](https://api.flutter.dev/flutter/dart-core/String-class.html)? label\]) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setBadgeLabel](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setBadgeLabel.html)(\[[String](https://api.flutter.dev/flutter/dart-core/String-class.html)? label\]) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Set/unset label on taskbar(dock) app icon
 
-##### [setBounds](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setBounds.html)([Rect](https://api.flutter.dev/flutter/dart-ui/Rect-class.html)? bounds, {[Offset](https://api.flutter.dev/flutter/dart-ui/Offset-class.html)? position, [Size](https://api.flutter.dev/flutter/dart-ui/Size-class.html)? size, [bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) animate = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setBounds](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setBounds.html)([Rect](https://api.flutter.dev/flutter/dart-ui/Rect-class.html)? bounds, {[Offset](https://api.flutter.dev/flutter/dart-ui/Offset-class.html)? position, [Size](https://api.flutter.dev/flutter/dart-ui/Size-class.html)? size, [bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) animate = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Resizes and moves the window to the supplied bounds.
 
-##### [setBrightness](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setBrightness.html)([Brightness](https://api.flutter.dev/flutter/dart-ui/Brightness.html) brightness) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setBrightness](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setBrightness.html)([Brightness](https://api.flutter.dev/flutter/dart-ui/Brightness.html) brightness) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets the brightness of the window.
 
-##### [setClosable](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setClosable.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isClosable) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setClosable](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setClosable.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isClosable) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets whether the window can be manually closed by user.
 
-##### [setFullScreen](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setFullScreen.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isFullScreen) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setFullScreen](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setFullScreen.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isFullScreen) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets whether the window should be in fullscreen mode.
 
-##### [setHasShadow](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setHasShadow.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) hasShadow) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setHasShadow](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setHasShadow.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) hasShadow) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets whether the window should have a shadow. On Windows, doesn't do anything unless window is frameless.
 
-##### [setIcon](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setIcon.html)([String](https://api.flutter.dev/flutter/dart-core/String-class.html) iconPath) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setIcon](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setIcon.html)([String](https://api.flutter.dev/flutter/dart-core/String-class.html) iconPath) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets window/taskbar icon.
 
-##### [setIgnoreMouseEvents](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setIgnoreMouseEvents.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) ignore, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) forward = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setIgnoreMouseEvents](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setIgnoreMouseEvents.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) ignore, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) forward = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Makes the window ignore all mouse events.
 
-##### [setMaximizable](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setMaximizable.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isMaximizable) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setMaximizable](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setMaximizable.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isMaximizable) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets whether the window can be manually maximized by the user.
 
-##### [setMaximumSize](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setMaximumSize.html)([Size](https://api.flutter.dev/flutter/dart-ui/Size-class.html) size) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setMaximumSize](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setMaximumSize.html)([Size](https://api.flutter.dev/flutter/dart-ui/Size-class.html) size) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets the maximum size of window to `width` and `height`.
 
-##### [setMinimizable](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setMinimizable.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isMinimizable) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setMinimizable](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setMinimizable.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isMinimizable) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets whether the window can be manually minimized by user.
 
-##### [setMinimumSize](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setMinimumSize.html)([Size](https://api.flutter.dev/flutter/dart-ui/Size-class.html) size) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setMinimumSize](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setMinimumSize.html)([Size](https://api.flutter.dev/flutter/dart-ui/Size-class.html) size) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets the minimum size of window to `width` and `height`.
 
-##### [setMovable](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setMovable.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isMovable) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setMovable](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setMovable.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isMovable) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets whether the window can be moved by user.
 
-##### [setOpacity](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setOpacity.html)([double](https://api.flutter.dev/flutter/dart-core/double-class.html) opacity) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setOpacity](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setOpacity.html)([double](https://api.flutter.dev/flutter/dart-core/double-class.html) opacity) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets the opacity of the window.
 
-##### [setPosition](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setPosition.html)([Offset](https://api.flutter.dev/flutter/dart-ui/Offset-class.html) position, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) animate = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setPosition](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setPosition.html)([Offset](https://api.flutter.dev/flutter/dart-ui/Offset-class.html) position, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) animate = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Moves window to position.
 
-##### [setPreventClose](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setPreventClose.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isPreventClose) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setPreventClose](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setPreventClose.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isPreventClose) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Set if intercept the native close signal. May useful when combine with the onclose event listener. This will also prevent the manually triggered close event.
 
-##### [setProgressBar](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setProgressBar.html)([double](https://api.flutter.dev/flutter/dart-core/double-class.html) progress) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setProgressBar](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setProgressBar.html)([double](https://api.flutter.dev/flutter/dart-core/double-class.html) progress) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets progress value in progress bar. Valid range is `0, 1.0`.
 
-##### [setResizable](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setResizable.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isResizable) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setResizable](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setResizable.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isResizable) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets whether the window can be manually resized by the user.
 
-##### [setSize](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setSize.html)([Size](https://api.flutter.dev/flutter/dart-ui/Size-class.html) size, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) animate = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setSize](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setSize.html)([Size](https://api.flutter.dev/flutter/dart-ui/Size-class.html) size, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) animate = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Resizes the window to `width` and `height`.
 
-##### [setSkipTaskbar](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setSkipTaskbar.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isSkipTaskbar) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setSkipTaskbar](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setSkipTaskbar.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) isSkipTaskbar) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Makes the window not show in the taskbar / dock.
 
-##### [setTitle](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setTitle.html)([String](https://api.flutter.dev/flutter/dart-core/String-class.html) title) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setTitle](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setTitle.html)([String](https://api.flutter.dev/flutter/dart-core/String-class.html) title) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Changes the title of native window to title.
 
-##### [setTitleBarStyle](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setTitleBarStyle.html)([TitleBarStyle](https://pub.dev/documentation/window_manager_plus/latest/TitleBarStyle.html) titleBarStyle, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) windowButtonVisibility = true}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setTitleBarStyle](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setTitleBarStyle.html)([TitleBarStyle](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/TitleBarStyle.html) titleBarStyle, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) windowButtonVisibility = true}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Changes the title bar style of native window.
 
-##### [setVisibleOnAllWorkspaces](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/setVisibleOnAllWorkspaces.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) visible, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)? visibleOnFullScreen}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [setVisibleOnAllWorkspaces](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/setVisibleOnAllWorkspaces.html)([bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) visible, {[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)? visibleOnFullScreen}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Sets whether the window should be visible on all workspaces.
 
-##### [show](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/show.html)({[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) inactive = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [show](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/show.html)({[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html) inactive = false}) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Shows and gives focus to the window.
 
-##### [startDragging](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/startDragging.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [startDragging](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/startDragging.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Starts a window drag based on the specified mouse-down event. On Windows, this is disabled during full screen mode.
 
-##### [startResizing](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/startResizing.html)([ResizeEdge](https://pub.dev/documentation/window_manager_plus/latest/ResizeEdge.html) resizeEdge) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [startResizing](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/startResizing.html)([ResizeEdge](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/ResizeEdge.html) resizeEdge) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Starts a window resize based on the specified mouse-down & mouse-move event. On Windows, this is disabled during full screen mode.
 
-##### [toString](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/toString.html)() → [String](https://api.flutter.dev/flutter/dart-core/String-class.html)
+##### [toString](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/toString.html)() → [String](https://api.flutter.dev/flutter/dart-core/String-class.html)
 
 A string representation of this object.
 
-##### [undock](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/undock.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
+##### [undock](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/undock.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[bool](https://api.flutter.dev/flutter/dart-core/bool-class.html)\>
 
 Undocks the window. only works on Windows
 
-##### [unmaximize](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/unmaximize.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [unmaximize](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/unmaximize.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Unmaximizes the window.
 
-##### [waitUntilReadyToShow](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/waitUntilReadyToShow.html)(\[[WindowOptions](https://pub.dev/documentation/window_manager_plus/latest/WindowOptions-class.html)? options, [VoidCallback](https://api.flutter.dev/flutter/dart-ui/VoidCallback.html)? callback\]) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [waitUntilReadyToShow](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/waitUntilReadyToShow.html)(\[[WindowOptions](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowOptions-class.html)? options, [VoidCallback](https://api.flutter.dev/flutter/dart-ui/VoidCallback.html)? callback\]) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
 Wait until ready to show.
 
 #### Static Methods
 
-##### [addGlobalListener](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/addGlobalListener.html)([WindowListener](https://pub.dev/documentation/window_manager_plus/latest/WindowListener-class.html) listener) → void
+##### [addGlobalListener](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/addGlobalListener.html)([WindowListener](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener-class.html) listener) → void
 
 Add a global listener to the window.
 
-##### [createWindow](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/createWindow.html)(\[[List](https://api.flutter.dev/flutter/dart-core/List-class.html)<[String](https://api.flutter.dev/flutter/dart-core/String-class.html)\>? args\]) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[WindowManagerPlus](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus-class.html)?\>
+##### [createWindow](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/createWindow.html)(\[[List](https://api.flutter.dev/flutter/dart-core/List-class.html)<[String](https://api.flutter.dev/flutter/dart-core/String-class.html)\>? args\]) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[WindowManagerPlus](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus-class.html)?\>
 
 Create a new window.
 
-##### [ensureInitialized](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/ensureInitialized.html)([int](https://api.flutter.dev/flutter/dart-core/int-class.html) windowId) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
+##### [ensureInitialized](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/ensureInitialized.html)([int](https://api.flutter.dev/flutter/dart-core/int-class.html) windowId) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<void\>
 
-Ensure the window manager for this `windowId` is initialized. Must be called before accessing the [WindowManagerPlus.current](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/current.html).
+Ensure the window manager for this `windowId` is initialized. Must be called before accessing the [WindowManagerPlus.current](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/current.html).
 
-##### [fromWindowId](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/fromWindowId.html)([int](https://api.flutter.dev/flutter/dart-core/int-class.html) windowId) → [WindowManagerPlus](https://pub.##### dev/documentation/window_manager_plus/latest/WindowManagerPlus-class.html)
+##### [fromWindowId](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/fromWindowId.html)([int](https://api.flutter.dev/flutter/dart-core/int-class.html) windowId) → [WindowManagerPlus](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus-class.html)
 
 Get the window manager from the window id.
 
-##### [getAllWindowManagerIds](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/getAllWindowManagerIds.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[List](https://api.flutter.dev/flutter/dart-core/List-class.html)<[int](https://api.flutter.dev/flutter/dart-core/int-class.html)\>\>
+##### [getAllWindowManagerIds](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/getAllWindowManagerIds.html)() → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)<[List](https://api.flutter.dev/flutter/dart-core/List-class.html)<[int](https://api.flutter.dev/flutter/dart-core/int-class.html)\>\>
 
 Get all window manager ids.
 
-##### [removeGlobalListener](https://pub.dev/documentation/window_manager_plus/latest/WindowManagerPlus/removeGlobalListener.html)([WindowListener](https://pub.dev/documentation/window_manager_plus/latest/WindowListener-class.html) listener) → void
+##### [removeGlobalListener](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowManagerPlus/removeGlobalListener.html)([WindowListener](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener-class.html) listener) → void
 
 Remove a global listener from the window.
 
@@ -1025,71 +990,71 @@ Remove a global listener from the window.
 
 #### Methods
 
-##### [onEventFromWindow](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onEventFromWindow.html)([String](https://api.flutter.dev/flutter/dart-core/String-class.html) eventName, [int](https://api.flutter.dev/flutter/dart-core/int-class.html) fromWindowId, dynamic arguments) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)
+##### [onEventFromWindow](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onEventFromWindow.html)([String](https://api.flutter.dev/flutter/dart-core/String-class.html) eventName, [int](https://api.flutter.dev/flutter/dart-core/int-class.html) fromWindowId, dynamic arguments) → [Future](https://api.flutter.dev/flutter/dart-async/Future-class.html)
 
 Event from other windows.
 
-##### [onWindowBlur](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowBlur.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowBlur](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowBlur.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when the window loses focus.
 
-##### [onWindowClose](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowClose.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowClose](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowClose.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when the window is going to be closed.
 
-##### [onWindowDocked](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowDocked.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowDocked](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowDocked.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when the window entered a docked state.
 
-##### [onWindowEnterFullScreen](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowEnterFullScreen.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowEnterFullScreen](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowEnterFullScreen.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when the window enters a full-screen state.
 
-##### [onWindowEvent](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowEvent.html)([String](https://api.flutter.dev/flutter/dart-core/String-class.html) eventName, \[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowEvent](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowEvent.html)([String](https://api.flutter.dev/flutter/dart-core/String-class.html) eventName, \[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted all events.
 
-##### [onWindowFocus](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowFocus.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowFocus](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowFocus.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when the window gains focus.
 
-##### [onWindowLeaveFullScreen](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowLeaveFullScreen.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowLeaveFullScreen](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowLeaveFullScreen.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when the window leaves a full-screen state.
 
-##### [onWindowMaximize](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowMaximize.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowMaximize](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowMaximize.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when window is maximized.
 
-##### [onWindowMinimize](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowMinimize.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowMinimize](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowMinimize.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when the window is minimized.
 
-##### [onWindowMove](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowMove.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowMove](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowMove.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when the window is being moved to a new position.
 
-##### [onWindowMoved](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowMoved.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowMoved](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowMoved.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted once when the window is moved to a new position.
 
-##### [onWindowResize](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowResize.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowResize](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowResize.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted after the window has been resized.
 
-##### [onWindowResized](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowResized.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowResized](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowResized.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted once when the window has finished being resized.
 
-##### [onWindowRestore](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowRestore.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowRestore](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowRestore.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when the window is restored from a minimized state.
 
-##### [onWindowUndocked](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowUndocked.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowUndocked](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowUndocked.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when the window leaves a docked state.
 
-##### [onWindowUnmaximize](https://pub.dev/documentation/window_manager_plus/latest/WindowListener/onWindowUnmaximize.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
+##### [onWindowUnmaximize](https://pub.dev/documentation/window_manager_plus/latest/window_manager_plus/WindowListener/onWindowUnmaximize.html)(\[[int](https://api.flutter.dev/flutter/dart-core/int-class.html)? windowId\]) → void
 
 Emitted when the window exits from a maximized state.
 
