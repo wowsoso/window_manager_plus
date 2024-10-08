@@ -189,17 +189,18 @@ Change the file `macos/Runner/AppDelegate.swift` as follows:
 ```diff
 import Cocoa
 import FlutterMacOS
++ import window_manager_plus
 
 @main
 class AppDelegate: FlutterAppDelegate {
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
 -    return true
-+    return NSApp.windows.count == 1 // or return false
++    return NSApp.windows.filter({$0 is MainFlutterWindow || $0 is WindowManagerPlusFlutterWindow}).count == 1 // or return false
   }
 }
 ```
 
-Without returning at least `NSApp.windows.count == 1`, the application will close when the main flutter window is closed.
+Without changing the return logic, the application will close when the main flutter window is closed.
 
 #### Windows
 
@@ -427,7 +428,7 @@ class AppDelegate: FlutterAppDelegate {
 }
 ```
 
-#### Windows
+##### Windows
 
 Change the file `windows/runner/main.cpp` as follows:
 

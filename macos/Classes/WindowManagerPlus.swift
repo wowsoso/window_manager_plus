@@ -52,20 +52,20 @@ extension NSRect {
 }
 
 /// Add extra hooks for window
-class FlutterWindowInner: NSPanel {
+public class WindowManagerPlusFlutterWindow: NSPanel {
     override public func order(_ place: NSWindow.OrderingMode, relativeTo otherWin: Int) {
         super.order(place, relativeTo: otherWin)
         hiddenWindowAtLaunch()
     }
     
     deinit {
-        debugPrint("FlutterWindowInner dealloc")
+        debugPrint("WindowManagerPlusFlutterWindow dealloc")
     }
 }
 
 public class WindowManagerPlus: NSObject, NSWindowDelegate {
     private static var autoincrementId: Int64 = 0;
-    private static var windows: [Int64:FlutterWindowInner?] = [:];
+    private static var windows: [Int64:WindowManagerPlusFlutterWindow?] = [:];
     public static var windowManagers: [Int64:WindowManagerPlus?] = [:];
     
     public var staticChannel: FlutterMethodChannel?
@@ -83,7 +83,7 @@ public class WindowManagerPlus: NSObject, NSWindowDelegate {
             commandLineArguments.append(contentsOf: args)
             project.dartEntrypointArguments = commandLineArguments
             
-            let window = FlutterWindowInner(
+            let window = WindowManagerPlusFlutterWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 480, height: 270),
                 styleMask: [.miniaturizable, .closable, .resizable, .titled, .fullSizeContentView],
                 backing: .buffered, defer: false)
