@@ -198,7 +198,7 @@ Change the file `windows/runner/main.cpp` as follows:
 #include "flutter_window.h"
 #include "utils.h"
 
-+ #include "window_manager/window_manager_plugin.h"
++ #include "window_manager_plus/window_manager_plus_plugin.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance,
                       _In_opt_ HINSTANCE prev,
@@ -229,7 +229,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance,
 -  window.SetQuitOnClose(true);
 +  window.SetQuitOnClose(false);
 +
-+  WindowManagerPluginSetWindowCreatedCallback(
++  WindowManagerPlusPluginSetWindowCreatedCallback(
 +      [](std::vector<std::string> command_line_arguments) {
 +        flutter::DartProject project(L"data");
 +
@@ -260,7 +260,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance,
 `window->SetQuitOnClose(false);` is necessary to prevent the application from closing when the window is closed.
 
 If you want to close the App only when the main window is closed, you can set `window->SetQuitOnClose(true);` in the main window.
-The others called inside the `WindowManagerPluginSetWindowCreatedCallback` should be set to `false`.
+The others called inside the `WindowManagerPlusPluginSetWindowCreatedCallback` should be set to `false`.
 
 ### Usage
 
