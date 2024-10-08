@@ -35,15 +35,19 @@ enum DockSide { left, right }
 
 /// WindowManagerPlus
 class WindowManagerPlus {
-
-  WindowManagerPlus._(int id) : _id = id, _channel = MethodChannel('window_manager_plus_$id') {
+  WindowManagerPlus._(int id)
+      : _id = id,
+        _channel = MethodChannel('window_manager_plus_$id') {
     _channel.setMethodCallHandler(_methodCallHandler);
   }
 
-  WindowManagerPlus._fromWindowId(int id) : _id = id, _channel = _current!._channel {}
+  WindowManagerPlus._fromWindowId(int id)
+      : _id = id,
+        _channel = _current!._channel {}
 
   final MethodChannel _channel;
-  static const MethodChannel _staticChannel = MethodChannel('window_manager_plus_static');
+  static const MethodChannel _staticChannel =
+      MethodChannel('window_manager_plus_static');
 
   int _id;
 
@@ -59,7 +63,7 @@ class WindowManagerPlus {
       ObserverList<WindowListener>();
 
   static final ObserverList<WindowListener> _globalListeners =
-  ObserverList<WindowListener>();
+      ObserverList<WindowListener>();
 
   static final Map<int, Completer> _completers = {};
 
@@ -71,13 +75,14 @@ class WindowManagerPlus {
 
     if (windowId != null) {
       if (eventName == kWindowEventInitialized) {
-        if (_completers[windowId] != null && !_completers[windowId]!.isCompleted) {
+        if (_completers[windowId] != null &&
+            !_completers[windowId]!.isCompleted) {
           _completers[windowId]?.complete();
         }
         _completers.remove(windowId);
-      }
-      else if (eventName == kWindowEventClose) {
-        if (_completers[windowId] != null && !_completers[windowId]!.isCompleted) {
+      } else if (eventName == kWindowEventClose) {
+        if (_completers[windowId] != null &&
+            !_completers[windowId]!.isCompleted) {
           _completers[windowId]?.complete();
         }
         _completers.remove(windowId);
@@ -210,7 +215,7 @@ class WindowManagerPlus {
   /// Get the global window listeners.
   static List<WindowListener> get globalListeners {
     final List<WindowListener> localListeners =
-    List<WindowListener>.from(_globalListeners);
+        List<WindowListener>.from(_globalListeners);
     return localListeners;
   }
 
@@ -241,7 +246,8 @@ class WindowManagerPlus {
     final Map<String, dynamic> arguments = {
       'args': args,
     };
-    int? windowId = await _staticChannel.invokeMethod('createWindow', arguments);
+    int? windowId =
+        await _staticChannel.invokeMethod('createWindow', arguments);
     if (windowId == null) {
       return null;
     }
@@ -252,7 +258,10 @@ class WindowManagerPlus {
 
   /// Get all window manager ids.
   static Future<List<int>> getAllWindowManagerIds() async {
-    return (await _staticChannel.invokeMethod<List<dynamic>>('getAllWindowManagerIds'))?.cast<int>() ?? [];
+    return (await _staticChannel
+                .invokeMethod<List<dynamic>>('getAllWindowManagerIds'))
+            ?.cast<int>() ??
+        [];
   }
 
   /// Get the window manager from the window id.
@@ -275,10 +284,13 @@ class WindowManagerPlus {
     _current = WindowManagerPlus._(windowId);
   }
 
-  Future<T?> _invokeMethod<T>(String method, [Map<String, dynamic>? arguments]) {
-    final Map<String, dynamic> args = _current?._id == _id ? {} : {
-      'windowId': _id,
-    };
+  Future<T?> _invokeMethod<T>(String method,
+      [Map<String, dynamic>? arguments]) {
+    final Map<String, dynamic> args = _current?._id == _id
+        ? {}
+        : {
+            'windowId': _id,
+          };
     if (arguments != null) {
       args.addAll(arguments);
     }
@@ -964,7 +976,8 @@ class WindowManagerPlus {
   /// Invokes a method on the window with id [targetWindowId].
   /// It could return a Future that resolves to the return value of the invoked method, otherwise `null`.
   /// Use [WindowListener.onEventFromWindow] to listen for the event.
-  Future<dynamic> invokeMethodToWindow(int targetWindowId, String method, [dynamic args]) async {
+  Future<dynamic> invokeMethodToWindow(int targetWindowId, String method,
+      [dynamic args]) async {
     final Map<String, dynamic> arguments = {
       'targetWindowId': targetWindowId,
       'args': {
@@ -982,4 +995,3 @@ class WindowManagerPlus {
     return 'WindowManagerPlus{id: $_id}';
   }
 }
-

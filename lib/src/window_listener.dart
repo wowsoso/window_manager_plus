@@ -68,7 +68,8 @@ abstract mixin class WindowListener {
   void onWindowEvent(String eventName, [int? windowId]) {}
 
   /// Event from other windows.
-  Future<dynamic> onEventFromWindow(String eventName, int fromWindowId, dynamic arguments) async {
+  Future<dynamic> onEventFromWindow(
+      String eventName, int fromWindowId, dynamic arguments) async {
     throw UnimplementedError();
   }
 }
