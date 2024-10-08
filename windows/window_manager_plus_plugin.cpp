@@ -410,8 +410,10 @@ void WindowManagerPlusPlugin::HandleStaticMethodCall(
           : -1;*/
 
   if (method_name.compare("createWindow") == 0) {
-    auto encodedArgs = std::get<flutter::EncodableList>(
-        args.at(flutter::EncodableValue("args")));
+    auto encodedArgs = args.at(flutter::EncodableValue("args")).IsNull()
+                           ? flutter::EncodableList()
+                           : std::get<flutter::EncodableList>(
+                                 args.at(flutter::EncodableValue("args")));
     std::vector<std::string> windowArgs;
     for (const auto& arg : encodedArgs) {
       if (std::holds_alternative<std::string>(arg)) {
