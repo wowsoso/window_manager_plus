@@ -4,22 +4,20 @@
 #include <windows.h>
 
 #include <flutter/method_channel.h>
+#include <flutter/method_result_functions.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
 #include <codecvt>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <sstream>
+#include <thread>
 
-#include "window_manager.cpp"
+#include "window_manager.h"
 
-void WindowManagerPluginSetWindowCreatedCallback(
-    WindowCreatedCallback callback) {
-  _g_window_created_callback = callback;
-}
-
-namespace {
+namespace window_manager_plus {
 
 bool IsWindows11OrGreater() {
   DWORD dwVersion = 0;
@@ -36,6 +34,8 @@ bool IsWindows11OrGreater() {
   return dwBuild < 22000;
 }
 
+std::mutex threadMtx;
+
 class WindowManagerPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows* registrar);
@@ -45,13 +45,14 @@ class WindowManagerPlugin : public flutter::Plugin {
   virtual ~WindowManagerPlugin();
 
  private:
-  WindowManager* window_manager;
+  std::shared_ptr<WindowManager> window_manager;
   flutter::PluginRegistrarWindows* registrar;
 
   // The ID of the WindowProc delegate registration.
   int window_proc_id = -1;
 
   void WindowManagerPlugin::_EmitEvent(std::string eventName);
+  void WindowManagerPlugin::_EmitGlobalEvent(std::string eventName);
   // Called for top-level WindowProc delegation.
   std::optional<LRESULT> WindowManagerPlugin::HandleWindowProc(HWND hWnd,
                                                                UINT message,
@@ -102,7 +103,7 @@ void WindowManagerPlugin::RegisterWithRegistrar(
 WindowManagerPlugin::WindowManagerPlugin(
     flutter::PluginRegistrarWindows* registrar)
     : registrar(registrar) {
-  window_manager = new WindowManager();
+  window_manager = std::make_shared<WindowManager>();
   window_manager->static_channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           registrar->messenger(), "window_manager_static",
@@ -127,18 +128,55 @@ WindowManagerPlugin::WindowManagerPlugin(
 }
 
 WindowManagerPlugin::~WindowManagerPlugin() {
+#ifndef NDEBUG
+  std::cout << "WindowManagerPlugin dealloc" << std::endl;
+#endif
   registrar->UnregisterTopLevelWindowProcDelegate(window_proc_id);
   window_manager->channel = nullptr;
+
+  auto id = window_manager->id;
+  if (WindowManager::windowManagers_.find(id) !=
+      WindowManager::windowManagers_.end()) {
+    WindowManager::windowManagers_.erase(id);
+  }
+  if (WindowManager::windows_.find(id) != WindowManager::windows_.end()) {
+    WindowManager::windows_[id]->Destroy();
+    // calling WindowManager::windows_.erase(id); will cause a crash
+    std::thread([&]() {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      threadMtx.lock();
+      if (WindowManager::windows_.find(id) != WindowManager::windows_.end()) {
+        WindowManager::windows_.erase(id);
+      }
+      threadMtx.unlock();
+    }).detach();
+  }
 }
 
 void WindowManagerPlugin::_EmitEvent(std::string eventName) {
-  if (window_manager->channel == nullptr)
+  if (window_manager == nullptr || window_manager->channel == nullptr)
     return;
   flutter::EncodableMap args = flutter::EncodableMap();
   args[flutter::EncodableValue("eventName")] =
       flutter::EncodableValue(eventName);
   window_manager->channel->InvokeMethod(
       "onEvent", std::make_unique<flutter::EncodableValue>(args));
+
+  _EmitGlobalEvent(eventName);
+}
+
+void WindowManagerPlugin::_EmitGlobalEvent(std::string eventName) {
+  for (auto wManagerPair : WindowManager::windowManagers_) {
+    if (wManagerPair.second->channel) {
+      wManagerPair.second->channel->InvokeMethod(
+          "onEvent",
+          std::make_unique<flutter::EncodableValue>(flutter::EncodableMap{
+              {flutter::EncodableValue("eventName"),
+               flutter::EncodableValue(eventName)},
+              {flutter::EncodableValue("windowId"),
+               flutter::EncodableValue(window_manager->id)}}));
+    }
+  }
 }
 
 std::optional<LRESULT> WindowManagerPlugin::HandleWindowProc(HWND hWnd,
@@ -373,6 +411,12 @@ void WindowManagerPlugin::HandleStaticMethodCall(
     auto newWindowId = WindowManager::createWindow(windowArgs);
     result->Success(newWindowId >= 0 ? flutter ::EncodableValue(newWindowId)
                                      : flutter ::EncodableValue());
+  } else if (method_name.compare("getAllWindowManagerIds") == 0) {
+    std::vector<int64_t> windowIds;
+    for (auto& window : WindowManager::windowManagers_) {
+      windowIds.push_back(window.first);
+    }
+    result->Success(flutter::EncodableValue(windowIds));
   } else {
     result->NotImplemented();
   }
@@ -399,7 +443,7 @@ void WindowManagerPlugin::HandleMethodCall(
 
   if (method_name.compare("ensureInitialized") == 0) {
     if (windowId >= 0) {
-      WindowManager::windowManagers_[windowId] = window_manager;
+      window_manager->id = windowId;
       window_manager->native_window =
           ::GetAncestor(registrar->GetView()->GetNativeWindow(), GA_ROOT);
 
@@ -416,19 +460,43 @@ void WindowManagerPlugin::HandleMethodCall(
             HandleMethodCall(call, std::move(result));
           });
 
+      WindowManager::windowManagers_[windowId] = window_manager;
       result->Success(flutter::EncodableValue(true));
-      for (auto wManagerPair : WindowManager::windowManagers_) {
-        if (wManagerPair.second->channel) {
-          wManagerPair.second->channel->InvokeMethod(
-              "onWindowInitialized",
-              std::make_unique<flutter::EncodableValue>(flutter::EncodableMap{
-                  {flutter::EncodableValue("windowId"),
-                   flutter::EncodableValue(windowId)},
-              }));
-        }
-      }
+      _EmitGlobalEvent("initialized");
     } else {
       result->Error("0", "Cannot ensureInitialized! windowId >= 0 is required");
+    }
+  } else if (method_name.compare("invokeMethodToWindow") == 0) {
+    auto targetWindowId =
+        std::get<int>(args.at(flutter::EncodableValue("targetWindowId")));
+    if (WindowManager::windowManagers_.find(targetWindowId) !=
+        WindowManager::windowManagers_.end()) {
+      auto result_ =
+          std::shared_ptr<flutter::MethodResult<flutter::EncodableValue>>(
+              std::move(result));
+      WindowManager::windowManagers_[targetWindowId]->channel->InvokeMethod(
+          "onEvent",
+          std::make_unique<flutter::EncodableValue>(
+              args.at(flutter::EncodableValue("args"))),
+          std::make_unique<
+              flutter::MethodResultFunctions<flutter::EncodableValue>>(
+              [result_](const flutter::EncodableValue* val) {
+                // Success
+                result_->Success(*val);
+              },
+              [result_](const std::string& error_code,
+                        const std::string& error_message,
+                        const flutter::EncodableValue* error_details) {
+                // Error
+                result_->Error(error_code, error_message);
+              },
+              [result_]() {
+                // Not implemented
+                result_->Error("0", "Method not implemented");
+              }));
+    } else {
+      result->Error("0",
+                    "Cannot invokeMethodToWindow! targetWindowId not found");
     }
   } else if (method_name.compare("waitUntilReadyToShow") == 0) {
     wManager->WaitUntilReadyToShow();
@@ -612,11 +680,11 @@ void WindowManagerPlugin::HandleMethodCall(
   }
 }
 
-}  // namespace
+}  // namespace window_manager_plus
 
 void WindowManagerPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  WindowManagerPlugin::RegisterWithRegistrar(
+  window_manager_plus::WindowManagerPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
 }

@@ -1,18 +1,14 @@
-#include "include/window_manager/window_manager_plugin.h"
-
 // This must be included before many other Windows headers.
 #pragma once
 
 #include <Windows.h>
 
-#include <shobjidl_core.h>
-
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
-#include <dwmapi.h>
 #include <codecvt>
+#include <dwmapi.h>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -49,9 +45,9 @@ constexpr const wchar_t kGetPreferredBrightnessRegValue[] =
 
 #define APPBAR_CALLBACK WM_USER + 0x01;
 
-namespace {
+namespace window_manager_plus {
 
-WindowCreatedCallback _g_window_created_callback = nullptr;
+WindowCreatedCallback g_window_created_callback = nullptr;
 
 const flutter::EncodableValue* ValueOrNull(const flutter::EncodableMap& map,
                                            const char* key) {
@@ -64,19 +60,23 @@ const flutter::EncodableValue* ValueOrNull(const flutter::EncodableMap& map,
 
 WindowManager::WindowManager() {}
 
-WindowManager::~WindowManager() {}
+WindowManager::~WindowManager() {
+#ifndef NDEBUG
+  std::cout << "WindowManager dealloc" << std::endl;
+#endif
+}
 
 int64_t WindowManager::createWindow(const std::vector<std::string>& args) {
-  if (_g_window_created_callback) {
-    WindowManager::id_++;
-    auto windowId = WindowManager::id_;
+  if (g_window_created_callback) {
+    WindowManager::autoincrementId_++;
+    auto windowId = WindowManager::autoincrementId_;
     std::vector<std::string> v1 = {std::to_string(windowId)};
 
-    // merge
+    // add the windowId as first argument to command_line_arguments
     std::vector<std::string> dst;
     std::merge(v1.begin(), v1.end(), args.begin(), args.end(),
                std::back_inserter(dst));
-    auto fWindow = _g_window_created_callback(std::move(dst));
+    auto fWindow = g_window_created_callback(std::move(dst));
     WindowManager::windows_.insert({windowId, std::move(fWindow)});
     return windowId;
   }
@@ -1016,4 +1016,9 @@ void WindowManager::StartResizing(const flutter::EncodableMap& args) {
               MAKELPARAM(cursorPos.x, cursorPos.y));
 }
 
-}  // namespace
+}  // namespace window_manager_plus
+
+void WindowManagerPluginSetWindowCreatedCallback(
+    WindowCreatedCallback callback) {
+  window_manager_plus::g_window_created_callback = callback;
+}

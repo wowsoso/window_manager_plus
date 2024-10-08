@@ -61,6 +61,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   void initState() {
     trayManager.addListener(this);
     WindowManager.current.addListener(this);
+    // WindowManager.addGlobalListener(this);
     _init();
     super.initState();
   }
@@ -69,6 +70,7 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   void dispose() {
     trayManager.removeListener(this);
     WindowManager.current.removeListener(this);
+    // WindowManager.removeGlobalListener(this);
     super.dispose();
   }
 
@@ -144,8 +146,22 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
             PreferenceListItem(
               title: const Text('createWindow'),
               onTap: () async {
-                final newWindow = await WindowManager.current.createWindow(['test args 1', 'test args 2']);
+                final newWindow = await WindowManager.createWindow(['test args 1', 'test args 2']);
                 BotToast.showText(text: 'New Created Window: $newWindow');
+                /*await Future.delayed(Duration(seconds: 3));
+                await newWindow?.hide();
+                await Future.delayed(Duration(seconds: 1));
+                await newWindow?.show();
+                newWindow?.invokeMethodToWindow(WindowManager.current.id, 'testMethod').then((value) {
+                  print('Response from ${WindowManager.current.id}: $value');
+                },);*/
+              },
+            ),
+            PreferenceListItem(
+              title: const Text('getAllWindowManagerIds'),
+              onTap: () async {
+                final windowManagerIds = await WindowManager.getAllWindowManagerIds();
+                BotToast.showText(text: 'WindowManager ID List: $windowManagerIds');
               },
             ),
             PreferenceListItem(
@@ -1048,12 +1064,18 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   }
 
   @override
-  void onWindowFocus() {
+  void onWindowFocus([int? windowId]) {
+    if (windowId != null) {
+      return;
+    }
     setState(() {});
   }
 
   @override
-  void onWindowClose() {
+  void onWindowClose([int? windowId]) {
+    if (windowId != null) {
+      return;
+    }
     if (_isPreventClose) {
       showDialog(
         context: context,
@@ -1082,7 +1104,14 @@ class _HomePageState extends State<HomePage> with TrayListener, WindowListener {
   }
 
   @override
-  void onWindowEvent(String eventName) {
-    print('[${WindowManager.current}] onWindowEvent: $eventName');
+  void onWindowEvent(String eventName, [int? windowId]) {
+    print('[${windowId != null ? "Global Event for Window $windowId from ${WindowManager.current}" : WindowManager.current}] onWindowEvent: $eventName');
+  }
+
+  @override
+  Future<dynamic> onEventFromWindow(String eventName, int fromWindowId, dynamic arguments) async {
+    BotToast.showText(
+        text: '[${WindowManager.current}] Event $eventName from Window $fromWindowId with arguments $arguments');
+    return 'Hello from ${WindowManager.current}';
   }
 }

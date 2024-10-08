@@ -12,6 +12,7 @@ import 'package:window_manager/src/utils/calc_window_position.dart';
 import 'package:window_manager/src/window_listener.dart';
 import 'package:window_manager/src/window_options.dart';
 
+const kWindowEventInitialized = 'initialized';
 const kWindowEventClose = 'close';
 const kWindowEventFocus = 'focus';
 const kWindowEventBlur = 'blur';
@@ -25,6 +26,7 @@ const kWindowEventMove = 'move';
 const kWindowEventMoved = 'moved';
 const kWindowEventEnterFullScreen = 'enter-full-screen';
 const kWindowEventLeaveFullScreen = 'leave-full-screen';
+const kEventFromWindow = 'event-from-window';
 
 const kWindowEventDocked = 'docked';
 const kWindowEventUndocked = 'undocked';
@@ -37,6 +39,8 @@ class WindowManager {
   WindowManager._(int id) : _id = id, _channel = MethodChannel('window_manager_$id') {
     _channel.setMethodCallHandler(_methodCallHandler);
   }
+
+  WindowManager._fromCreateWindow(int id) : _id = id, _channel = _current!._channel {}
 
   final MethodChannel _channel;
   static const MethodChannel _staticChannel = MethodChannel('window_manager_static');
@@ -52,55 +56,130 @@ class WindowManager {
   final ObserverList<WindowListener> _listeners =
       ObserverList<WindowListener>();
 
+  static final ObserverList<WindowListener> _globalListeners =
+  ObserverList<WindowListener>();
+
   static final Map<int, Completer> _completers = {};
 
-  Future<void> _methodCallHandler(MethodCall call) async {
-    switch(call.method) {
-      case "onWindowInitialized": {
-        int windowId = call.arguments['windowId'];
+  Future<dynamic> _methodCallHandler(MethodCall call) async {
+    if (call.method != 'onEvent') throw UnimplementedError();
+
+    String eventName = call.arguments['eventName'];
+    int? windowId = call.arguments['windowId'];
+
+    if (windowId != null) {
+      if (eventName == kWindowEventInitialized) {
         if (_completers[windowId] != null && !_completers[windowId]!.isCompleted) {
           _completers[windowId]?.complete();
         }
         _completers.remove(windowId);
-        return;
       }
-      case "onWindowDestroyed": {
-        int windowId = call.arguments['windowId'];
+      else if (eventName == kWindowEventClose) {
         if (_completers[windowId] != null && !_completers[windowId]!.isCompleted) {
           _completers[windowId]?.complete();
         }
         _completers.remove(windowId);
-        return;
-      }
-    }
-
-    for (final WindowListener listener in listeners) {
-      if (!_listeners.contains(listener)) {
-        return;
       }
 
-      if (call.method != 'onEvent') throw UnimplementedError();
+      for (final WindowListener listener in globalListeners) {
+        if (!_globalListeners.contains(listener)) {
+          break;
+        }
 
-      String eventName = call.arguments['eventName'];
-      listener.onWindowEvent(eventName);
-      Map<String, Function> funcMap = {
-        kWindowEventClose: listener.onWindowClose,
-        kWindowEventFocus: listener.onWindowFocus,
-        kWindowEventBlur: listener.onWindowBlur,
-        kWindowEventMaximize: listener.onWindowMaximize,
-        kWindowEventUnmaximize: listener.onWindowUnmaximize,
-        kWindowEventMinimize: listener.onWindowMinimize,
-        kWindowEventRestore: listener.onWindowRestore,
-        kWindowEventResize: listener.onWindowResize,
-        kWindowEventResized: listener.onWindowResized,
-        kWindowEventMove: listener.onWindowMove,
-        kWindowEventMoved: listener.onWindowMoved,
-        kWindowEventEnterFullScreen: listener.onWindowEnterFullScreen,
-        kWindowEventLeaveFullScreen: listener.onWindowLeaveFullScreen,
-        kWindowEventDocked: listener.onWindowDocked,
-        kWindowEventUndocked: listener.onWindowUndocked,
-      };
-      funcMap[eventName]?.call();
+        listener.onWindowEvent(eventName, windowId);
+        Map<String, Function> funcMap = {
+          kWindowEventClose: listener.onWindowClose,
+          kWindowEventFocus: listener.onWindowFocus,
+          kWindowEventBlur: listener.onWindowBlur,
+          kWindowEventMaximize: listener.onWindowMaximize,
+          kWindowEventUnmaximize: listener.onWindowUnmaximize,
+          kWindowEventMinimize: listener.onWindowMinimize,
+          kWindowEventRestore: listener.onWindowRestore,
+          kWindowEventResize: listener.onWindowResize,
+          kWindowEventResized: listener.onWindowResized,
+          kWindowEventMove: listener.onWindowMove,
+          kWindowEventMoved: listener.onWindowMoved,
+          kWindowEventEnterFullScreen: listener.onWindowEnterFullScreen,
+          kWindowEventLeaveFullScreen: listener.onWindowLeaveFullScreen,
+          kWindowEventDocked: listener.onWindowDocked,
+          kWindowEventUndocked: listener.onWindowUndocked,
+        };
+        funcMap[eventName]?.call(windowId);
+      }
+
+      if (_current != null && _id != _current!.id) {
+        for (final WindowListener listener in listeners) {
+          if (!_listeners.contains(listener)) {
+            break;
+          }
+
+          if (eventName == kEventFromWindow) {
+            String method = call.arguments['method'];
+            int fromWindowId = call.arguments['fromWindowId'];
+            dynamic eventArguments = call.arguments['arguments'];
+            try {
+              return await listener.onEventFromWindow(
+                  method, fromWindowId, eventArguments);
+            } catch (_) {}
+          }
+
+          listener.onWindowEvent(eventName);
+          Map<String, Function> funcMap = {
+            kWindowEventClose: listener.onWindowClose,
+            kWindowEventFocus: listener.onWindowFocus,
+            kWindowEventBlur: listener.onWindowBlur,
+            kWindowEventMaximize: listener.onWindowMaximize,
+            kWindowEventUnmaximize: listener.onWindowUnmaximize,
+            kWindowEventMinimize: listener.onWindowMinimize,
+            kWindowEventRestore: listener.onWindowRestore,
+            kWindowEventResize: listener.onWindowResize,
+            kWindowEventResized: listener.onWindowResized,
+            kWindowEventMove: listener.onWindowMove,
+            kWindowEventMoved: listener.onWindowMoved,
+            kWindowEventEnterFullScreen: listener.onWindowEnterFullScreen,
+            kWindowEventLeaveFullScreen: listener.onWindowLeaveFullScreen,
+            kWindowEventDocked: listener.onWindowDocked,
+            kWindowEventUndocked: listener.onWindowUndocked,
+          };
+          funcMap[eventName]?.call();
+        }
+      }
+    } else if (_current != null && _id == _current!.id) {
+      for (final WindowListener listener in listeners) {
+        if (!_listeners.contains(listener)) {
+          break;
+        }
+
+        if (eventName == kEventFromWindow) {
+          String method = call.arguments['method'];
+          int fromWindowId = call.arguments['fromWindowId'];
+          dynamic eventArguments = call.arguments['arguments'];
+          try {
+            return await listener.onEventFromWindow(
+                method, fromWindowId, eventArguments);
+          } catch (_) {}
+        }
+
+        listener.onWindowEvent(eventName);
+        Map<String, Function> funcMap = {
+          kWindowEventClose: listener.onWindowClose,
+          kWindowEventFocus: listener.onWindowFocus,
+          kWindowEventBlur: listener.onWindowBlur,
+          kWindowEventMaximize: listener.onWindowMaximize,
+          kWindowEventUnmaximize: listener.onWindowUnmaximize,
+          kWindowEventMinimize: listener.onWindowMinimize,
+          kWindowEventRestore: listener.onWindowRestore,
+          kWindowEventResize: listener.onWindowResize,
+          kWindowEventResized: listener.onWindowResized,
+          kWindowEventMove: listener.onWindowMove,
+          kWindowEventMoved: listener.onWindowMoved,
+          kWindowEventEnterFullScreen: listener.onWindowEnterFullScreen,
+          kWindowEventLeaveFullScreen: listener.onWindowLeaveFullScreen,
+          kWindowEventDocked: listener.onWindowDocked,
+          kWindowEventUndocked: listener.onWindowUndocked,
+        };
+        funcMap[eventName]?.call();
+      }
     }
   }
 
@@ -122,13 +201,31 @@ class WindowManager {
     _listeners.remove(listener);
   }
 
+  static List<WindowListener> get globalListeners {
+    final List<WindowListener> localListeners =
+    List<WindowListener>.from(_globalListeners);
+    return localListeners;
+  }
+
+  static bool get hasGlobalListeners {
+    return _globalListeners.isNotEmpty;
+  }
+
+  static void addGlobalListener(WindowListener listener) {
+    _globalListeners.add(listener);
+  }
+
+  static void removeGlobalListener(WindowListener listener) {
+    _globalListeners.remove(listener);
+  }
+
   double getDevicePixelRatio() {
     // Subsequent version, remove this deprecated member.
     // ignore: deprecated_member_use
     return window.devicePixelRatio;
   }
 
-  Future<WindowManager?> createWindow([List<String>? args]) async {
+  static Future<WindowManager?> createWindow([List<String>? args]) async {
     final Map<String, dynamic> arguments = {
       'args': args,
     };
@@ -138,18 +235,21 @@ class WindowManager {
     }
     _completers[windowId] = Completer();
     await _completers[windowId]?.future;
-    return WindowManager._(windowId);
+    return WindowManager._fromCreateWindow(windowId);
+  }
+
+  static Future<List<int>> getAllWindowManagerIds() async {
+    return await _staticChannel.invokeMethod('getAllWindowManagerIds');
   }
 
   static WindowManager fromWindowId(int windowId) {
-    return WindowManager._(windowId);
+    return WindowManager._fromCreateWindow(windowId);
   }
 
   static Future<void> ensureInitialized(int windowId) async {
     if (_current != null) {
       return;
     }
-
     final Map<String, dynamic> arguments = {
       'windowId': windowId,
     };
@@ -811,6 +911,19 @@ class WindowManager {
   /// @platforms linux
   Future<bool> ungrabKeyboard() async {
     return await _invokeMethod('ungrabKeyboard');
+  }
+
+  Future<dynamic> invokeMethodToWindow(int targetWindowId, String method, [dynamic args]) async {
+    final Map<String, dynamic> arguments = {
+      'targetWindowId': targetWindowId,
+      'args': {
+        'fromWindowId': _id,
+        'eventName': kEventFromWindow,
+        'method': method,
+        'arguments': args,
+      },
+    };
+    return await _invokeMethod('invokeMethodToWindow', arguments);
   }
 
   @override

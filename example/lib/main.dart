@@ -1,11 +1,14 @@
 import 'package:bot_toast/bot_toast.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_manager_example/pages/home.dart';
 import 'package:window_manager_example/utils/config.dart';
 
 void main(List<String> args) async {
-  print(args);
+  if (kDebugMode) {
+    print(args);
+  }
 
   WidgetsFlutterBinding.ensureInitialized();
   await WindowManager.ensureInitialized(args.isEmpty ? 0 : int.parse(args[0]));
@@ -21,6 +24,12 @@ void main(List<String> args) async {
   WindowManager.current.waitUntilReadyToShow(windowOptions, () async {
     await WindowManager.current.show();
     await WindowManager.current.focus();
+
+    if (WindowManager.current.id != 0) {
+      WindowManager.current.invokeMethodToWindow(0, 'testMethod').then((value) {
+        BotToast.showText(text: 'Response from 0: $value');
+      },);
+    }
   });
 
   runApp(const MyApp());

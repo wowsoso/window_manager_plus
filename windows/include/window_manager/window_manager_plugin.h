@@ -24,7 +24,14 @@ extern "C" {
 FLUTTER_PLUGIN_EXPORT void WindowManagerPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
-class FlutterWindow;
+#ifndef RUNNER_FLUTTER_WINDOW_H_
+#define RUNNER_FLUTTER_WINDOW_H_
+class FlutterWindow {
+ public:
+  virtual void Destroy() = 0;
+};
+
+#endif  // RUNNER_FLUTTER_WINDOW_H_
 
 typedef std::shared_ptr<FlutterWindow> (*WindowCreatedCallback)(
     std::vector<std::string> command_line_arguments);

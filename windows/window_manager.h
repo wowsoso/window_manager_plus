@@ -1,6 +1,8 @@
 #ifndef WINDOW_MANAGER_WINDOW_MANAGER_H_
 #define WINDOW_MANAGER_WINDOW_MANAGER_H_
 
+#include <shobjidl_core.h>
+
 #include "include/window_manager/window_manager_plugin.h"
 
 #include <flutter/method_channel.h>
@@ -19,7 +21,7 @@
 #define STATE_FULLSCREEN_ENTERED 3
 #define STATE_DOCKED 4
 
-namespace {
+namespace window_manager_plus {
 
 class WindowManager {
  public:
@@ -27,9 +29,10 @@ class WindowManager {
 
   virtual ~WindowManager();
 
-  inline static int64_t id_ = 0;
+  inline static int64_t autoincrementId_ = 0;
   inline static std::map<int64_t, std::shared_ptr<FlutterWindow>> windows_ = {};
-  inline static std::map<int64_t, WindowManager*> windowManagers_ = {};
+  inline static std::map<int64_t, std::shared_ptr<WindowManager>>
+      windowManagers_ = {};
 
   std::unique_ptr<
       flutter::MethodChannel<flutter::EncodableValue>,
@@ -41,10 +44,9 @@ class WindowManager {
       std::default_delete<flutter::MethodChannel<flutter::EncodableValue>>>
       channel = nullptr;
 
+  int64_t id = -1;
   HWND native_window;
-
   int last_state = STATE_NORMAL;
-
   bool has_shadow_ = false;
   bool is_always_on_bottom_ = false;
   bool is_frameless_ = false;
@@ -146,5 +148,6 @@ class WindowManager {
                                                PAPPBARDATA pabd);
   void WindowManager::DockAccessBar(HWND hwnd, UINT edge, UINT windowWidth);
 };
-}  // namespace
+}  // namespace window_manager_plus
+
 #endif  // WINDOW_MANAGER_WINDOW_MANAGER_H_

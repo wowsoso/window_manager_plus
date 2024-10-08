@@ -128,12 +128,12 @@ class _WindowCaptionState extends State<WindowCaption> with WindowListener {
   }
 
   @override
-  void onWindowMaximize() {
+  void onWindowMaximize([int? windowId]) {
     setState(() {});
   }
 
   @override
-  void onWindowUnmaximize() {
+  void onWindowUnmaximize([int? windowId]) {
     setState(() {});
   }
 }
