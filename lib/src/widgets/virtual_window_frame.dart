@@ -31,13 +31,13 @@ class _VirtualWindowFrameState extends State<VirtualWindowFrame>
 
   @override
   void initState() {
-    windowManager.addListener(this);
+    WindowManager.current.addListener(this);
     super.initState();
   }
 
   @override
   void dispose() {
-    windowManager.removeListener(this);
+    WindowManager.current.removeListener(this);
     super.dispose();
   }
 

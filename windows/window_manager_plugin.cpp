@@ -14,6 +14,11 @@
 
 #include "window_manager.cpp"
 
+void WindowManagerPluginSetWindowCreatedCallback(
+    WindowCreatedCallback callback) {
+  _g_window_created_callback = callback;
+}
+
 namespace {
 
 bool IsWindows11OrGreater() {
@@ -30,11 +35,6 @@ bool IsWindows11OrGreater() {
 
   return dwBuild < 22000;
 }
-
-std::unique_ptr<
-    flutter::MethodChannel<flutter::EncodableValue>,
-    std::default_delete<flutter::MethodChannel<flutter::EncodableValue>>>
-    channel = nullptr;
 
 class WindowManagerPlugin : public flutter::Plugin {
  public:
@@ -59,6 +59,10 @@ class WindowManagerPlugin : public flutter::Plugin {
                                                                LPARAM lParam);
   // Called when a method is called on this plugin's channel from Dart.
   void HandleMethodCall(
+      const flutter::MethodCall<flutter::EncodableValue>& method_call,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+
+  static void HandleStaticMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
@@ -90,16 +94,7 @@ class WindowManagerPlugin : public flutter::Plugin {
 // static
 void WindowManagerPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows* registrar) {
-  channel = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-      registrar->messenger(), "window_manager",
-      &flutter::StandardMethodCodec::GetInstance());
-
   auto plugin = std::make_unique<WindowManagerPlugin>(registrar);
-
-  channel->SetMethodCallHandler(
-      [plugin_pointer = plugin.get()](const auto& call, auto result) {
-        plugin_pointer->HandleMethodCall(call, std::move(result));
-      });
 
   registrar->AddPlugin(std::move(plugin));
 }
@@ -108,6 +103,23 @@ WindowManagerPlugin::WindowManagerPlugin(
     flutter::PluginRegistrarWindows* registrar)
     : registrar(registrar) {
   window_manager = new WindowManager();
+  window_manager->static_channel =
+      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+          registrar->messenger(), "window_manager_static",
+          &flutter::StandardMethodCodec::GetInstance());
+  window_manager->static_channel->SetMethodCallHandler(
+      [](const auto& call, auto result) {
+        HandleStaticMethodCall(call, std::move(result));
+      });
+  window_manager->channel =
+      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+          registrar->messenger(), "window_manager",
+          &flutter::StandardMethodCodec::GetInstance());
+  window_manager->channel->SetMethodCallHandler(
+      [this](const auto& call, auto result) {
+        HandleMethodCall(call, std::move(result));
+      });
+
   window_proc_id = registrar->RegisterTopLevelWindowProcDelegate(
       [this](HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
         return HandleWindowProc(hWnd, message, wParam, lParam);
@@ -116,17 +128,17 @@ WindowManagerPlugin::WindowManagerPlugin(
 
 WindowManagerPlugin::~WindowManagerPlugin() {
   registrar->UnregisterTopLevelWindowProcDelegate(window_proc_id);
-  channel = nullptr;
+  window_manager->channel = nullptr;
 }
 
 void WindowManagerPlugin::_EmitEvent(std::string eventName) {
-  if (channel == nullptr)
+  if (window_manager->channel == nullptr)
     return;
   flutter::EncodableMap args = flutter::EncodableMap();
   args[flutter::EncodableValue("eventName")] =
       flutter::EncodableValue(eventName);
-  channel->InvokeMethod("onEvent",
-                        std::make_unique<flutter::EncodableValue>(args));
+  window_manager->channel->InvokeMethod(
+      "onEvent", std::make_unique<flutter::EncodableValue>(args));
 }
 
 std::optional<LRESULT> WindowManagerPlugin::HandleWindowProc(HWND hWnd,
@@ -335,245 +347,265 @@ std::optional<LRESULT> WindowManagerPlugin::HandleWindowProc(HWND hWnd,
   return result;
 }
 
+void WindowManagerPlugin::HandleStaticMethodCall(
+    const flutter::MethodCall<flutter::EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  std::string method_name = method_call.method_name();
+
+  const flutter::EncodableMap& args =
+      method_call.arguments()->IsNull()
+          ? flutter::EncodableMap()
+          : std::get<flutter::EncodableMap>(*method_call.arguments());
+  /*auto windowId =
+      args.find(flutter::EncodableValue("windowId")) != args.end()
+          ? std::get<int>(args.at(flutter::EncodableValue("windowId")))
+          : -1;*/
+
+  if (method_name.compare("createWindow") == 0) {
+    auto encodedArgs = std::get<flutter::EncodableList>(
+        args.at(flutter::EncodableValue("args")));
+    std::vector<std::string> windowArgs;
+    for (const auto& arg : encodedArgs) {
+      if (std::holds_alternative<std::string>(arg)) {
+        windowArgs.push_back(std::get<std::string>(arg));
+      }
+    }
+    auto newWindowId = WindowManager::createWindow(windowArgs);
+    result->Success(newWindowId >= 0 ? flutter ::EncodableValue(newWindowId)
+                                     : flutter ::EncodableValue());
+  } else {
+    result->NotImplemented();
+  }
+}
+
 void WindowManagerPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   std::string method_name = method_call.method_name();
 
+  const flutter::EncodableMap& args =
+      method_call.arguments()->IsNull()
+          ? flutter::EncodableMap()
+          : std::get<flutter::EncodableMap>(*method_call.arguments());
+  auto windowId =
+      args.find(flutter::EncodableValue("windowId")) != args.end()
+          ? std::get<int>(args.at(flutter::EncodableValue("windowId")))
+          : -1;
+  auto wManager = window_manager;
+  if (windowId >= 0 && WindowManager::windowManagers_.find(windowId) !=
+                           WindowManager::windowManagers_.end()) {
+    wManager = WindowManager::windowManagers_[windowId];
+  }
+
   if (method_name.compare("ensureInitialized") == 0) {
-    window_manager->native_window =
-        ::GetAncestor(registrar->GetView()->GetNativeWindow(), GA_ROOT);
-    result->Success(flutter::EncodableValue(true));
+    if (windowId >= 0) {
+      WindowManager::windowManagers_[windowId] = window_manager;
+      window_manager->native_window =
+          ::GetAncestor(registrar->GetView()->GetNativeWindow(), GA_ROOT);
+
+      if (window_manager->channel) {
+        window_manager->channel->SetMethodCallHandler(nullptr);
+      }
+      window_manager->channel =
+          std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+              registrar->messenger(),
+              "window_manager_" + std::to_string(windowId),
+              &flutter::StandardMethodCodec::GetInstance());
+      window_manager->channel->SetMethodCallHandler(
+          [this](const auto& call, auto result) {
+            HandleMethodCall(call, std::move(result));
+          });
+
+      result->Success(flutter::EncodableValue(true));
+      for (auto wManagerPair : WindowManager::windowManagers_) {
+        if (wManagerPair.second->channel) {
+          wManagerPair.second->channel->InvokeMethod(
+              "onWindowInitialized",
+              std::make_unique<flutter::EncodableValue>(flutter::EncodableMap{
+                  {flutter::EncodableValue("windowId"),
+                   flutter::EncodableValue(windowId)},
+              }));
+        }
+      }
+    } else {
+      result->Error("0", "Cannot ensureInitialized! windowId >= 0 is required");
+    }
   } else if (method_name.compare("waitUntilReadyToShow") == 0) {
-    window_manager->WaitUntilReadyToShow();
+    wManager->WaitUntilReadyToShow();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("setAsFrameless") == 0) {
-    window_manager->SetAsFrameless();
+    wManager->SetAsFrameless();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("destroy") == 0) {
-    window_manager->Destroy();
+    wManager->Destroy();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("close") == 0) {
-    window_manager->Close();
+    wManager->Close();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("isPreventClose") == 0) {
-    auto value = window_manager->IsPreventClose();
+    auto value = wManager->IsPreventClose();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setPreventClose") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetPreventClose(args);
+    wManager->SetPreventClose(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("focus") == 0) {
-    window_manager->Focus();
+    wManager->Focus();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("blur") == 0) {
-    window_manager->Blur();
+    wManager->Blur();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("isFocused") == 0) {
-    bool value = window_manager->IsFocused();
+    bool value = wManager->IsFocused();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("show") == 0) {
-    window_manager->Show();
+    wManager->Show();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("hide") == 0) {
-    window_manager->Hide();
+    wManager->Hide();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("isVisible") == 0) {
-    bool value = window_manager->IsVisible();
+    bool value = wManager->IsVisible();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("isMaximized") == 0) {
-    bool value = window_manager->IsMaximized();
+    bool value = wManager->IsMaximized();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("maximize") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->Maximize(args);
+    wManager->Maximize(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("unmaximize") == 0) {
-    window_manager->Unmaximize();
+    wManager->Unmaximize();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("isMinimized") == 0) {
-    bool value = window_manager->IsMinimized();
+    bool value = wManager->IsMinimized();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("minimize") == 0) {
-    window_manager->Minimize();
+    wManager->Minimize();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("restore") == 0) {
-    window_manager->Restore();
+    wManager->Restore();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("isDockable") == 0) {
-    bool value = window_manager->IsDockable();
+    bool value = wManager->IsDockable();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("isDocked") == 0) {
-    int value = window_manager->IsDocked();
+    int value = wManager->IsDocked();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("dock") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->Dock(args);
+    wManager->Dock(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("undock") == 0) {
-    bool value = window_manager->Undock();
+    bool value = wManager->Undock();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("isFullScreen") == 0) {
-    bool value = window_manager->IsFullScreen();
+    bool value = wManager->IsFullScreen();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setFullScreen") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetFullScreen(args);
+    wManager->SetFullScreen(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("setAspectRatio") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetAspectRatio(args);
+    wManager->SetAspectRatio(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("setBackgroundColor") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetBackgroundColor(args);
+    wManager->SetBackgroundColor(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("getBounds") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    flutter::EncodableMap value = window_manager->GetBounds(args);
+    flutter::EncodableMap value = wManager->GetBounds(args);
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setBounds") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetBounds(args);
+    wManager->SetBounds(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("setMinimumSize") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetMinimumSize(args);
+    wManager->SetMinimumSize(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("setMaximumSize") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetMaximumSize(args);
+    wManager->SetMaximumSize(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("isResizable") == 0) {
-    bool value = window_manager->IsResizable();
+    bool value = wManager->IsResizable();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setResizable") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetResizable(args);
+    wManager->SetResizable(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("isMinimizable") == 0) {
-    bool value = window_manager->IsMinimizable();
+    bool value = wManager->IsMinimizable();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setMinimizable") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetMinimizable(args);
+    wManager->SetMinimizable(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("isMaximizable") == 0) {
-    bool value = window_manager->IsMaximizable();
+    bool value = wManager->IsMaximizable();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setMaximizable") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetMaximizable(args);
+    wManager->SetMaximizable(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("isClosable") == 0) {
-    bool value = window_manager->IsClosable();
+    bool value = wManager->IsClosable();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setClosable") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetClosable(args);
+    wManager->SetClosable(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("isAlwaysOnTop") == 0) {
-    bool value = window_manager->IsAlwaysOnTop();
+    bool value = wManager->IsAlwaysOnTop();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setAlwaysOnTop") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetAlwaysOnTop(args);
+    wManager->SetAlwaysOnTop(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("isAlwaysOnBottom") == 0) {
-    bool value = window_manager->IsAlwaysOnBottom();
+    bool value = wManager->IsAlwaysOnBottom();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setAlwaysOnBottom") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetAlwaysOnBottom(args);
+    wManager->SetAlwaysOnBottom(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("getTitle") == 0) {
-    std::string value = window_manager->GetTitle();
+    std::string value = wManager->GetTitle();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setTitle") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetTitle(args);
+    wManager->SetTitle(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("setTitleBarStyle") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetTitleBarStyle(args);
+    wManager->SetTitleBarStyle(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("getTitleBarHeight") == 0) {
-    int value = window_manager->GetTitleBarHeight();
+    int value = wManager->GetTitleBarHeight();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("isSkipTaskbar") == 0) {
-    bool value = window_manager->IsSkipTaskbar();
+    bool value = wManager->IsSkipTaskbar();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setSkipTaskbar") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetSkipTaskbar(args);
+    wManager->SetSkipTaskbar(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("setProgressBar") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetProgressBar(args);
+    wManager->SetProgressBar(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("setIcon") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetIcon(args);
+    wManager->SetIcon(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("hasShadow") == 0) {
-    bool value = window_manager->HasShadow();
+    bool value = wManager->HasShadow();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setHasShadow") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetHasShadow(args);
+    wManager->SetHasShadow(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("getOpacity") == 0) {
-    double value = window_manager->GetOpacity();
+    double value = wManager->GetOpacity();
     result->Success(flutter::EncodableValue(value));
   } else if (method_name.compare("setOpacity") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetOpacity(args);
+    wManager->SetOpacity(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("setBrightness") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetBrightness(args);
+    wManager->SetBrightness(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("setIgnoreMouseEvents") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->SetIgnoreMouseEvents(args);
+    wManager->SetIgnoreMouseEvents(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("popUpWindowMenu") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->PopUpWindowMenu(args);
+    wManager->PopUpWindowMenu(args);
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("startDragging") == 0) {
-    window_manager->StartDragging();
+    wManager->StartDragging();
     result->Success(flutter::EncodableValue(true));
   } else if (method_name.compare("startResizing") == 0) {
-    const flutter::EncodableMap& args =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    window_manager->StartResizing(args);
+    wManager->StartResizing(args);
     result->Success(flutter::EncodableValue(true));
   } else {
     result->NotImplemented();

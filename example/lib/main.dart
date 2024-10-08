@@ -4,9 +4,11 @@ import 'package:window_manager/window_manager.dart';
 import 'package:window_manager_example/pages/home.dart';
 import 'package:window_manager_example/utils/config.dart';
 
-void main() async {
+void main(List<String> args) async {
+  print(args);
+
   WidgetsFlutterBinding.ensureInitialized();
-  await windowManager.ensureInitialized();
+  await WindowManager.ensureInitialized(args.isEmpty ? 0 : int.parse(args[0]));
 
   WindowOptions windowOptions = const WindowOptions(
     size: Size(800, 600),
@@ -16,9 +18,9 @@ void main() async {
     titleBarStyle: TitleBarStyle.hidden,
     windowButtonVisibility: false,
   );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
+  WindowManager.current.waitUntilReadyToShow(windowOptions, () async {
+    await WindowManager.current.show();
+    await WindowManager.current.focus();
   });
 
   runApp(const MyApp());

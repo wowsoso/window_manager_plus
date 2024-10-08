@@ -8,6 +8,7 @@ set(PLUGIN_NAME "window_manager_plugin")
 
 add_library(${PLUGIN_NAME} SHARED
   "window_manager.cpp"
+  "window_manager.h"
   "window_manager_plugin.cpp"
 )
 apply_standard_settings(${PLUGIN_NAME})
