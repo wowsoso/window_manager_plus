@@ -11,25 +11,22 @@ void main(List<String> args) async {
   }
 
   WidgetsFlutterBinding.ensureInitialized();
-  await WindowManagerPlus.ensureInitialized(args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0);
 
-  WindowOptions windowOptions = const WindowOptions(
-    size: Size(800, 600),
+  final windowId = args.isEmpty ? 0 : int.tryParse(args[0]) ?? 0;
+  await WindowManagerPlus.ensureInitialized(windowId);
+
+  WindowOptions windowOptions = WindowOptions(
+    size: const Size(800, 600),
     center: true,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
     windowButtonVisibility: false,
+    title: 'Window ID ${WindowManagerPlus.current.id}',
   );
   WindowManagerPlus.current.waitUntilReadyToShow(windowOptions, () async {
     await WindowManagerPlus.current.show();
     await WindowManagerPlus.current.focus();
-
-    if (WindowManagerPlus.current.id != 0) {
-      WindowManagerPlus.current.invokeMethodToWindow(0, 'testMethod').then((value) {
-        BotToast.showText(text: 'Response from 0: $value');
-      },);
-    }
   });
 
   runApp(const MyApp());
